@@ -142,7 +142,7 @@ export const products: Product[] = [
   ...cushions,
 ];
 
-export const featuredProducts: Product[] = ['polo-white', 'polo-black', 'polo-navy', 'polo-grey'].map(id => products.find(p => p.id === id)!);
+export const featuredProducts: Product[] = ['polo-white', 'polo-black', 'polo-navy', 'polo-grey', 'polo-pack-2', 'cushion-pompom', 'cushion-blush-stripe', 'polo-pack-3'].map(id => products.find(p => p.id === id)!);
 
 export const categoryMeta: Record<string, {title: string; subtitle: string; description: string}> = {
   men: {title:'Men T-Shirts',subtitle:'T-Shirts & Hoodies',description:"Explore our premium collection of men's t-shirts."},

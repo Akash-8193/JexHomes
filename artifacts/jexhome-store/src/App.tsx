@@ -1,17 +1,21 @@
-import { useMemo, useState } from 'react';
-import { Link, Route, Switch, useLocation, useParams } from 'wouter';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, Route, Switch, useLocation, useParams, useSearch } from 'wouter';
 import {
   Heart, Search, UserRound, ShoppingBag, ShoppingCart, Menu, X,
   ShieldCheck, Sparkles, Truck, Globe2, ArrowRight, Upload, Type,
   Shapes, Palette, Box, Trash2, Plus, Minus, Play, PackageCheck,
   RotateCcw, Leaf, SlidersHorizontal, ChevronRight, Instagram,
-  Facebook, Youtube, CheckCircle2, Star, CreditCard, Smartphone, Check
+  Facebook, Youtube, CheckCircle2, Star, CreditCard, Smartphone, Check,
+  Eye, Repeat2, ListFilter, Headphones, CalendarDays
 } from 'lucide-react';
 import { Form } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { categoryMeta, featuredProducts, products, type Product } from './data/products';
+import { products as baseProducts, type Product } from './data/products';
+import type { BlogPost } from './data/content';
+import { useCatalog } from './lib/catalog';
+import AdminPage from './pages/Admin';
 import { store, useStore, type CartItem } from './lib/store';
 
 const currency = (value: number) => `₹${value.toLocaleString('en-IN')}`;
@@ -69,6 +73,7 @@ function addProduct(product: Product, color = 'Off White', size?: string, quanti
 function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
   const [, navigate] = useLocation();
+  const products = useCatalog(s => s.products);
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
@@ -286,16 +291,17 @@ function Navbar({ onOpenSearch, onOpenAccount }: { onOpenSearch: () => void; onO
       <div className="container nav-inner">
         <button
           className="mobile-toggle"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle navigation"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={open}
           data-testid="button-toggle-menu"
         >
-          {open ? <X size={19} /> : <Menu size={20} />}
+          <Menu size={20} />
         </button>
         <Link href="/" className="brand" data-testid="link-home-logo">
           <img src="/logo.png" alt="JexHome" />
         </Link>
-        <nav className={`navlinks ${open ? 'open' : ''}`}>
+        <nav className="navlinks">
           {categoryLinks.map(([name, path]) => (
             <Link
               key={path}
@@ -363,7 +369,65 @@ function Navbar({ onOpenSearch, onOpenAccount }: { onOpenSearch: () => void; onO
           </Link>
         </div>
       </div>
+      <MobileDrawer open={open} onClose={() => setOpen(false)} onOpenAccount={onOpenAccount} />
     </header>
+  );
+}
+
+function MobileDrawer({ open, onClose, onOpenAccount }: { open: boolean; onClose: () => void; onOpenAccount: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onClose]);
+
+  const account = () => {
+    onClose();
+    onOpenAccount();
+  };
+
+  return (
+    <div className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open}>
+      <button className="drawer-backdrop" aria-label="Close menu" tabIndex={-1} onClick={onClose} />
+      <aside className="drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
+        <div className="drawer-head">
+          <Link href="/" onClick={onClose} className="drawer-logo"><img src="/logo.png" alt="JexHome" /></Link>
+          <button aria-label="Close menu" onClick={onClose} data-testid="button-close-menu"><X size={22} /></button>
+        </div>
+
+        <nav className="drawer-main">
+          <Link href="/" onClick={onClose}>Home</Link>
+          {categoryLinks.map(([name, path]) => (
+            <Link key={path} href={`/shop/${path}`} onClick={onClose} data-testid={`link-drawer-${path}`}>{name}</Link>
+          ))}
+          <Link href="/custom-print" onClick={onClose}>Custom Print</Link>
+        </nav>
+
+        <div className="drawer-group">
+          <span className="drawer-label">Collections</span>
+          <Link href="/shop/men" onClick={onClose}>Zip Polo T-Shirts</Link>
+          <Link href="/product/zip-polo-t-shirt-pack-of-3" onClick={onClose}>Polo Value Packs</Link>
+          <Link href="/shop/cushions-pillow" onClick={onClose}>Cushion Covers</Link>
+          <Link href="/shop" onClick={onClose} className="hot">New Arrivals 🔥</Link>
+        </div>
+
+        <div className="drawer-group">
+          <span className="drawer-label">Account &amp; More</span>
+          <button onClick={account}>My Account / Login</button>
+          <Link href="/wishlist" onClick={onClose}>Wishlist</Link>
+          <button onClick={account}>Track Order</button>
+          <button onClick={account}>Help &amp; Support</button>
+        </div>
+
+        <div className="drawer-foot">JexHome Style • Everyday Edit</div>
+      </aside>
+    </div>
   );
 }
 
@@ -527,18 +591,9 @@ const designTools = [
 ] as const;
 
 function Home() {
-  const [filter, setFilter] = useState('All');
   const [, navigate] = useLocation();
-
-  const shown = useMemo(() => {
-    if (filter === 'All') return featuredProducts;
-    if (filter === 'Custom Print') return [products[0]];
-    if (filter === 'T-Shirts') return products.filter(p => ['men', 'women'].includes(p.category) && p.listingVisible !== false).slice(0, 4);
-    if (filter === 'Kids') return products.filter(p => p.category === 'kids' && p.listingVisible !== false).slice(0, 4);
-    if (filter === 'Hoodies') return products.filter(p => p.category === 'hoodies' && p.listingVisible !== false).slice(0, 4);
-    if (filter === 'Cushions') return products.filter(p => p.category === 'cushions-pillow' && p.listingVisible !== false).slice(0, 4);
-    return featuredProducts;
-  }, [filter]);
+  const { products, featuredIds, bestSellers, newArrivals, offers, blogPosts } = useCatalog();
+  const featuredProducts = featuredIds.map(id => products.find(p => p.id === id)).filter((p): p is Product => Boolean(p));
 
   return (
     <>
@@ -587,29 +642,102 @@ function Home() {
         ))}
       </section>
 
-      <section className="container home-products">
-        <div className="section-heading">
-          <h2 className="serif">Featured Products</h2>
-          <div className="tabs">
-            {['All', 'T-Shirts', 'Hoodies', 'Kids', 'Cushions', 'Custom Print'].map(tab => (
-              <button
-                onClick={() => setFilter(tab)}
-                className={`tab ${filter === tab ? 'active' : ''}`}
-                key={tab}
-                data-testid={`button-feature-${tab.toLowerCase().replaceAll(' ', '-')}`}
+      <section className="best-seller container" aria-labelledby="best-seller-title">
+        <span className="best-seller-pill">BEST SELLER</span>
+        <h2 id="best-seller-title">Shop by Style Categories</h2>
+        <div className="best-seller-row">
+          {bestSellers.map(cat => {
+            const count = products.filter(p => p.category === cat.slug && p.listingVisible !== false).length;
+            return (
+              <Link
+                key={cat.slug}
+                href={`/shop/${cat.slug}`}
+                className="best-seller-item"
+                data-testid={`link-best-seller-${cat.slug}`}
               >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <Link href="/shop/men" className="view-all" data-testid="link-view-all">
-            View All →
-          </Link>
+                <span className={`best-seller-circle ${cat.flat ? 'flat' : ''}`}>
+                  <img src={cat.image} alt={cat.name} loading="lazy" />
+                </span>
+                <h3>{cat.name}</h3>
+                <p>{count} {count === 1 ? 'Product' : 'Products'}</p>
+              </Link>
+            );
+          })}
         </div>
-        <div className="product-grid">
-          {shown.map(p => (
-            <ProductCard product={p} key={p.id} />
+      </section>
+
+      <section className="new-arrivals container" aria-labelledby="new-arrivals-title">
+        <span className="best-seller-pill">NEW ARRIVALS</span>
+        <h2 id="new-arrivals-title">Fresh Styles just Landed</h2>
+        <div className="na-grid">
+          {newArrivals.map(item => (
+            <Link
+              key={item.slug}
+              href={`/shop?category=${item.category}`}
+              className="na-card"
+              data-testid={`link-new-arrival-${item.slug}`}
+            >
+              <img src={item.image} alt={item.title} loading="lazy" style={{ objectPosition: item.position }} />
+              <div className="na-body">
+                <h3>{item.title}</h3>
+                <span className="na-link">
+                  Read More
+                  <span className="na-arrow"><ArrowRight size={14} /></span>
+                </span>
+              </div>
+            </Link>
           ))}
+        </div>
+      </section>
+
+      <section className="offers" aria-label="Offers">
+        <div className="offer-row">
+          {offers.map(o => (
+            <article className="offer-card" key={o.title}>
+              <Link href={o.href} className="offer-img" tabIndex={-1} aria-hidden="true">
+                <img src={o.image} alt="" loading="lazy" style={{ objectPosition: o.position }} />
+              </Link>
+              <div className="offer-copy">
+                <span className="offer-tag">{o.tag}</span>
+                <h3>{o.title}</h3>
+                <p>{o.text}</p>
+                <Link href={o.href} className="offer-btn" data-testid={`link-offer-${o.href.split('/').pop()}`}>
+                  Get Offer
+                  <span><ArrowRight size={20} /></span>
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="goals container" aria-labelledby="goals-title">
+        <span className="best-seller-pill">FASHION BY GOAL</span>
+        <h2 id="goals-title">Style choices for every goal</h2>
+        <p className="goals-lead">
+          Discover JexHome pieces made for every part of your day—office, weekends, travel or a cosy home makeover, find styles that fit every moment.
+        </p>
+        <div className="goals-row">
+          {[
+            { Icon: Box, title: 'Free Shipping', text: 'Enjoy fast and reliable free shipping on orders above ₹499.' },
+            { Icon: CreditCard, title: 'Secure Payments', text: 'Your payments are fully encrypted for a safe, smooth checkout.' },
+            { Icon: Truck, title: 'Easy Returns', text: '7-day easy returns and quick size exchanges with doorstep pickup.' },
+            { Icon: Headphones, title: '24/7 Support', text: 'Our friendly support team is here to help you anytime.' }
+          ].map(({ Icon, title, text }) => (
+            <div className="goal" key={title}>
+              <span className="goal-icon"><Icon size={34} strokeWidth={1.5} /></span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="home-featured container" aria-labelledby="featured-title">
+        <span className="best-seller-pill">FEATURED PRODUCTS</span>
+        <h2 id="featured-title">Discover featured products</h2>
+        <div className="home-featured-grid">
+          {featuredProducts.map(p => <ShopCard product={p} key={p.id} />)}
         </div>
       </section>
 
@@ -650,308 +778,493 @@ function Home() {
           ))}
         </div>
       </section>
+
+      <FaqSection />
+
+      <section className="blogs container" aria-labelledby="blogs-title">
+        <span className="best-seller-pill">LATEST BLOGS</span>
+        <h2 id="blogs-title">Latest Trends in Fashion and Lifestyle</h2>
+        <div className="blog-grid">
+          {blogPosts.map(post => <BlogCard post={post} key={post.slug} />)}
+        </div>
+      </section>
     </>
+  );
+}
+
+function BlogCard({ post }: { post: BlogPost }) {
+  return (
+    <article className="blog-card">
+      <Link href={`/blog/${post.slug}`} className="blog-img" tabIndex={-1} aria-hidden="true">
+        <img src={post.image} alt="" loading="lazy" style={{ objectPosition: post.position }} />
+      </Link>
+      <h3><Link href={`/blog/${post.slug}`}>{post.title}</Link></h3>
+      <div className="blog-meta">
+        <Link href={`/blog/${post.slug}`} className="blog-read" data-testid={`link-blog-${post.slug}`}>
+          Read More <span><ArrowRight size={15} /></span>
+        </Link>
+        <span className="blog-date"><CalendarDays size={20} strokeWidth={1.6} /> {post.date}</span>
+      </div>
+    </article>
+  );
+}
+
+function BlogPostPage() {
+  const { slug = '' } = useParams();
+  const blogPosts = useCatalog(s => s.blogPosts);
+  const post = blogPosts.find(p => p.slug === slug) ?? blogPosts[0];
+  useEffect(() => window.scrollTo(0, 0), [slug]);
+  if (!post) return <NotFound />;
+
+  return (
+    <>
+      <ShopBanner
+        banner={{ title: 'JEXHOME JOURNAL', image: post.image, position: post.position }}
+        crumbs={[['Home', '/'], ['Blog'], [post.title]]}
+      />
+      <main className="container blog-post">
+        <span className="blog-date"><CalendarDays size={18} strokeWidth={1.6} /> {post.date}</span>
+        <h2>{post.title}</h2>
+        <img src={post.image} alt={post.title} style={{ objectPosition: post.position }} />
+        {post.body.map(para => <p key={para.slice(0, 24)}>{para}</p>)}
+        <Link href={post.shopHref} className="offer-btn blog-shop">
+          {post.shopLabel}
+          <span><ArrowRight size={20} /></span>
+        </Link>
+
+        <h3 className="blog-more-title">More from the journal</h3>
+        <div className="blog-grid blog-grid-small">
+          {blogPosts.filter(p => p.slug !== post.slug).map(p => <BlogCard post={p} key={p.slug} />)}
+        </div>
+      </main>
+    </>
+  );
+}
+
+const faqs = [
+  {
+    q: 'What types of products do you offer?',
+    a: 'We offer premium T-shirts, oversized tees, polos, hoodies, kidswear, and home decor like cushion covers and pillows — plus custom printing on apparel made just for you.'
+  },
+  {
+    q: 'Can I design and print my own T-shirt?',
+    a: 'Yes! Use our Custom Print designer to upload your artwork, add text, shapes and colours, and preview your design in 3D before placing the order.'
+  },
+  {
+    q: 'How do I choose the right size?',
+    a: 'Every product page has a Size Guide with chest, length and shoulder measurements in inches. Our oversized styles have a relaxed fit, so pick your regular size for the intended look.'
+  },
+  {
+    q: 'How long does delivery take?',
+    a: 'Orders are dispatched within 24–48 hours across India. Standard delivery arrives in 3–5 business days, and express delivery within 2 business days in major metros. Shipping is free on orders above ₹499.'
+  },
+  {
+    q: 'What is your return and exchange policy?',
+    a: 'If the size doesn’t fit or you’re not 100% happy, raise a return or size exchange request within 7 days of delivery. We’ll arrange a free doorstep pickup.'
+  },
+  {
+    q: 'Which payment methods do you accept?',
+    a: 'We accept UPI (GPay, PhonePe, Paytm), Credit / Debit Cards (VISA, Mastercard) and Cash on Delivery with no extra COD charge. All payments are fully encrypted.'
+  }
+];
+
+function FaqSection() {
+  const [open, setOpen] = useState(0);
+
+  return (
+    <section className="faq container" aria-labelledby="faq-title">
+      <div className="faq-intro">
+        <span className="best-seller-pill">FAQ'S</span>
+        <h2 id="faq-title">Everything you need to know today</h2>
+        <p>We’ve gathered the most important information in one place so you can shop and customise with confidence and ease.</p>
+        <div className="faq-perks">
+          <span><Truck size={24} strokeWidth={1.5} /> Fast &amp; Secure Delivery</span>
+          <span><ShieldCheck size={24} strokeWidth={1.5} /> 100% Secure Payment</span>
+        </div>
+      </div>
+
+      <div className="faq-list">
+        {faqs.map((f, i) => {
+          const isOpen = open === i;
+          return (
+            <div className={`faq-item ${isOpen ? 'open' : ''}`} key={f.q}>
+              <button
+                className="faq-q"
+                onClick={() => setOpen(isOpen ? -1 : i)}
+                aria-expanded={isOpen}
+                data-testid={`button-faq-${i + 1}`}
+              >
+                {i + 1}. {f.q}
+                <span className="faq-icon">{isOpen ? <Minus size={16} strokeWidth={2.5} /> : <Plus size={16} strokeWidth={2.5} />}</span>
+              </button>
+              {isOpen && <p className="faq-a">{f.a}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
 function Footer({ onOpenInfo }: { onOpenInfo: (topic: string) => void }) {
   return (
     <footer className="footer">
-      <div className="container footer-inner">
-        <div className="footer-brand">
-          <Link href="/" className="brand footer-logo">
-            <img src="/logo.png" alt="JexHome" />
-          </Link>
-          <p style={{ fontSize: 10, color: '#777', maxWidth: 210, lineHeight: 1.6 }}>
-            Wear your story. Make your space yours. Premium custom apparel & home decor.
-          </p>
-          <div style={{ display: 'flex', gap: 12, color: '#6b6b6b' }}>
-            <button
-              onClick={() => notify('Follow JexHome on Instagram @jexhome_official')}
-              style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
-              aria-label="Instagram"
-            >
-              <Instagram size={15} />
-            </button>
-            <button
-              onClick={() => notify('Visit our Facebook community @jexhome')}
-              style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
-              aria-label="Facebook"
-            >
-              <Facebook size={15} />
-            </button>
-            <button
-              onClick={() => notify('Watch design tutorials on our YouTube channel')}
-              style={{ border: 0, background: 'none', cursor: 'pointer', color: 'inherit', padding: 0 }}
-              aria-label="YouTube"
-            >
-              <Youtube size={15} />
-            </button>
+      <div className="container">
+        <div className="footer-perks">
+          {[
+            [PackageCheck, 'Premium Quality', '240 GSM combed cotton fabric'],
+            [Truck, 'Fast Delivery', 'Free shipping above ₹499'],
+            [ShieldCheck, 'Secure Payments', 'UPI, cards & cash on delivery'],
+            [RotateCcw, 'Easy Returns', '7-day returns & size exchange'],
+          ].map(([Icon, title, text]) => (
+            <div className="footer-perk" key={title as string}>
+              <Icon size={34} strokeWidth={1.4} />
+              <div>
+                <h4>{title as string}</h4>
+                <p>{text as string}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <Link href="/" className="footer-logo">
+              <img src="/logo.png" alt="JexHome" />
+            </Link>
+            <p>JexHome is a custom apparel &amp; home decor brand — wear your story and make your space yours.</p>
+            <div className="footer-social">
+              <button onClick={() => notify('Follow JexHome on Instagram @jexhome_official')} aria-label="Instagram">
+                <Instagram size={16} />
+              </button>
+              <button onClick={() => notify('Visit our Facebook community @jexhome')} aria-label="Facebook">
+                <Facebook size={16} />
+              </button>
+              <button onClick={() => notify('Watch design tutorials on our YouTube channel')} aria-label="YouTube">
+                <Youtube size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4>Quick Links</h4>
+            <div className="foot-links">
+              <Link href="/">Home</Link>
+              <Link href="/shop">Shop</Link>
+              <Link href="/custom-print">Custom Print</Link>
+              <button onClick={() => onOpenInfo('Our Story')}>About Us</button>
+              <button onClick={() => onOpenInfo('Contact Us')}>Contact Us</button>
+            </div>
+          </div>
+
+          <div>
+            <h4>Product Categories</h4>
+            <div className="foot-links">
+              <Link href="/shop/men">Men</Link>
+              <Link href="/shop/women">Women</Link>
+              <Link href="/shop/kids">Kids</Link>
+              <Link href="/shop/hoodies">Hoodies</Link>
+              <Link href="/shop/cushions-pillow">Cushions &amp; Pillow</Link>
+            </div>
           </div>
         </div>
 
-        <div>
-          <h4>Shop</h4>
-          <div className="foot-links">
-            <Link href="/shop/men">Men</Link>
-            <Link href="/shop/women">Women</Link>
-            <Link href="/shop/kids">Kids</Link>
-            <Link href="/shop/hoodies">Hoodies</Link>
-            <Link href="/shop/cushions-pillow">Cushions & Pillow</Link>
-            <Link href="/custom-print">Custom Print</Link>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} JexHome — Custom Apparel &amp; Home Decor. All rights reserved.</span>
+          <div>
+            {['Shipping & Returns', 'FAQs', 'Privacy Policy', 'Terms & Conditions'].map(t => (
+              <button key={t} onClick={() => onOpenInfo(t)}>{t}</button>
+            ))}
+            <Link href="/admin" data-testid="link-admin">Admin</Link>
           </div>
         </div>
-
-        <div>
-          <h4>Help</h4>
-          <div className="foot-links">
-            <button
-              onClick={() => onOpenInfo('Contact Us')}
-              style={{ border: 0, background: 'none', textAlign: 'left', padding: 0, cursor: 'pointer', color: 'inherit' }}
-            >
-              Contact Us
-            </button>
-            <button
-              onClick={() => onOpenInfo('Shipping & Returns')}
-              style={{ border: 0, background: 'none', textAlign: 'left', padding: 0, cursor: 'pointer', color: 'inherit' }}
-            >
-              Shipping & Returns
-            </button>
-            <button
-              onClick={() => onOpenInfo('FAQs')}
-              style={{ border: 0, background: 'none', textAlign: 'left', padding: 0, cursor: 'pointer', color: 'inherit' }}
-            >
-              FAQs
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <h4>Company</h4>
-          <div className="foot-links">
-            <button
-              onClick={() => onOpenInfo('Our Story')}
-              style={{ border: 0, background: 'none', textAlign: 'left', padding: 0, cursor: 'pointer', color: 'inherit' }}
-            >
-              Our Story
-            </button>
-            <button
-              onClick={() => onOpenInfo('Privacy Policy')}
-              style={{ border: 0, background: 'none', textAlign: 'left', padding: 0, cursor: 'pointer', color: 'inherit' }}
-            >
-              Privacy Policy
-            </button>
-            <button
-              onClick={() => onOpenInfo('Terms & Conditions')}
-              style={{ border: 0, background: 'none', textAlign: 'left', padding: 0, cursor: 'pointer', color: 'inherit' }}
-            >
-              Terms & Conditions
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="container" style={{ fontSize: 9, color: '#888', marginTop: 29 }}>
-        © JexHome — Custom Apparel & Home Decor. All rights reserved.
       </div>
     </footer>
   );
 }
 
-function Listing() {
-  const { category = 'men' } = useParams();
-  const meta = categoryMeta[category] ?? categoryMeta.men;
-  const [sort, setSort] = useState('Popular');
-  const [maxPrice, setMaxPrice] = useState(2000);
-  const [size, setSize] = useState('');
-  const [color, setColor] = useState('');
-  const [selectedCat, setSelectedCat] = useState('T-Shirts');
-  const [fabric, setFabric] = useState<string[]>([]);
-  const [mobileFilter, setMobileFilter] = useState(false);
+const shopCategories = [
+  { slug: 'men', name: "Men's Polos" },
+  { slug: 'women', name: "Women's Tees" },
+  { slug: 'kids', name: 'Kids Wear' },
+  { slug: 'hoodies', name: 'Hoodies' },
+  { slug: 'cushions-pillow', name: 'Cushions & Pillow' },
+];
+const shopBanners: Record<string, { title: string; image: string; position: string }> = {
+  all: { title: 'PREMIUM COLLECTION', image: '/images/polo-black-side.jpg', position: 'center 22%' },
+  men: { title: "MEN'S ZIP POLOS", image: '/images/polo-pack3.jpg', position: 'center 28%' },
+  women: { title: "WOMEN'S TEES", image: '/images/cat-women.jpg', position: 'center 30%' },
+  kids: { title: 'KIDS WEAR', image: '/images/cat-kids.jpg', position: 'center 35%' },
+  hoodies: { title: 'HOODIES', image: '/images/prod-oversized-hoodie.jpg', position: 'center 40%' },
+  'cushions-pillow': { title: 'CUSHIONS & PILLOW', image: '/images/cushion-blush-stripe-set.jpg', position: 'center 55%' },
+  'custom-print': { title: 'CUSTOM PRINT', image: '/images/custom-shirt.png', position: 'center 40%' },
+};
 
-  const resetFilters = () => {
-    setSize('');
-    setColor('');
-    setSelectedCat('');
-    setMaxPrice(2000);
-    setFabric([]);
-    notify('Filters reset to default');
+function ShopBanner({ banner, crumbs }: { banner: { title: string; image: string; position: string }; crumbs: [string, string?][] }) {
+  return (
+    <section className="shop-hero">
+      <img src={banner.image} alt="" aria-hidden="true" style={{ objectPosition: banner.position }} />
+      <div className="container shop-hero-inner">
+        <h1>{banner.title}</h1>
+        <nav className="shop-crumb">
+          {crumbs.map(([label, href], i) => (
+            <span key={label}>
+              {i > 0 && <span className="sep">/</span>}
+              {href ? <Link href={href}>{label}</Link> : label}
+            </span>
+          ))}
+        </nav>
+      </div>
+    </section>
+  );
+}
+
+const SHOP_MAX_PRICE = 2000;
+const SHOP_PAGE = 9;
+
+function ShopStars({ rating }: { rating: number }) {
+  return (
+    <span className="shop-stars" aria-label={`${rating} out of 5`}>
+      {[1, 2, 3, 4, 5].map(n => (
+        <Star key={n} size={15} fill={n <= Math.round(rating) ? 'currentColor' : 'none'} />
+      ))}
+    </span>
+  );
+}
+
+function ShopCard({ product }: { product: Product }) {
+  const state = useStore();
+  const [, navigate] = useLocation();
+  const wished = state.wishlist.includes(product.id);
+  const mrp = product.mrp ?? product.price + 200;
+
+  return (
+    <article className="shop-card" data-testid={`card-shop-${product.id}`}>
+      <div className={`shop-card-visual ${product.gallery ? 'photo' : ''}`}>
+        <Link href={`/product/${product.slug}`} aria-label={product.name}>
+          <img src={product.image} alt={product.name} loading="lazy" />
+        </Link>
+        {product.mrp && <span className="shop-sale">Sale!</span>}
+        <div className="shop-actions">
+          <button
+            aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+            className={wished ? 'on' : ''}
+            onClick={() => {
+              store.toggleWish(product.id);
+              notify(wished ? 'Removed from wishlist' : 'Added to wishlist');
+            }}
+          >
+            <Heart size={17} fill={wished ? 'currentColor' : 'none'} />
+          </button>
+          <button aria-label="Quick view" onClick={() => navigate(`/product/${product.slug}`)}>
+            <Eye size={17} />
+          </button>
+          <button aria-label="Add to cart" onClick={() => addProduct(product, product.colors[0])}>
+            <ShoppingCart size={17} />
+          </button>
+          <button aria-label="Compare" onClick={() => notify(`${product.name} added to compare`)}>
+            <Repeat2 size={17} />
+          </button>
+        </div>
+      </div>
+      <Link href={`/product/${product.slug}`} className="shop-card-title">{product.name}</Link>
+      <div className="shop-card-rating">
+        <ShopStars rating={product.rating} /> <span>({product.reviews})</span>
+      </div>
+      <div className="shop-card-price">
+        <del>{currency(mrp)}</del>
+        <span>–</span>
+        <b>{currency(product.price)}</b>
+      </div>
+    </article>
+  );
+}
+
+function CategoryShop() {
+  const { category = '' } = useParams();
+  return <Shop key={category} category={category} />;
+}
+
+function Shop({ category }: { category?: string }) {
+  const search = useSearch();
+  const [, navigate] = useLocation();
+  const isCat = (slug: string | null | undefined): slug is string => !!slug && shopCategories.some(c => c.slug === slug);
+  const fixed = isCat(category) ? category : undefined;
+  const initialCat = fixed ?? new URLSearchParams(search).get('category');
+  const [cats, setCats] = useState<string[]>(isCat(initialCat) ? [initialCat] : []);
+  const [maxPrice, setMaxPrice] = useState(SHOP_MAX_PRICE);
+  const [ratings, setRatings] = useState<number[]>([]);
+  const [sizes, setSizes] = useState<string[]>([]);
+  const [sort, setSort] = useState('default');
+  const [perPage, setPerPage] = useState(SHOP_PAGE);
+  const [visible, setVisible] = useState(SHOP_PAGE);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => window.scrollTo(0, 0), []);
+
+  const toggle = <T,>(list: T[], value: T, set: (v: T[]) => void) => {
+    set(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
+    setVisible(perPage);
   };
 
-  const hasActiveFilters = Boolean(size || color || selectedCat || maxPrice < 2000 || fabric.length > 0);
-
+  const all = useCatalog(s => s.products).filter(p => p.listingVisible !== false);
+  const pool = fixed ? all.filter(p => p.category === fixed) : all;
+  const banner = shopBanners[fixed ?? 'all'];
+  const fixedName = shopCategories.find(c => c.slug === fixed)?.name;
   const items = useMemo(() => {
-    let result = products.filter(p =>
-      p.category === category &&
-      p.listingVisible !== false &&
+    const result = all.filter(p =>
+      (!cats.length || cats.includes(p.category)) &&
       p.price <= maxPrice &&
-      (!size || p.sizes.includes(size)) &&
-      (!color || p.colors.includes(color)) &&
-      (!selectedCat || selectedCat === 'T-Shirts' || (selectedCat === 'Hoodies' && p.category === 'hoodies') || (selectedCat === 'Oversized' && p.name.toLowerCase().includes('oversized')) || (selectedCat === 'Polo T-Shirts' && p.name.toLowerCase().includes('polo'))) &&
-      fabric.every(f => f === 'Cotton' || (f === 'Cotton Blend' && p.price < 550) || (f === 'Premium' && p.rating >= 4.8) || (f === 'Oversized Fit' && p.name.toLowerCase().includes('oversized')))
+      (!ratings.length || ratings.some(r => Math.round(p.rating) === r)) &&
+      (!sizes.length || sizes.some(sz => p.sizes.includes(sz)))
     );
-    if (sort === 'Popular') result.sort((a, b) => Number(!!b.isNew) - Number(!!a.isNew));
-    if (sort === 'Price Low to High') result.sort((a, b) => a.price - b.price);
-    if (sort === 'Price High to Low') result.sort((a, b) => b.price - a.price);
-    if (sort === 'Rating') result.sort((a, b) => b.rating - a.rating);
-    if (sort === 'Newest') result.reverse();
+    if (sort === 'popularity') result.sort((a, b) => b.reviews - a.reviews);
+    if (sort === 'rating') result.sort((a, b) => b.rating - a.rating);
+    if (sort === 'newest') result.sort((a, b) => Number(!!b.isNew) - Number(!!a.isNew));
+    if (sort === 'price-asc') result.sort((a, b) => a.price - b.price);
+    if (sort === 'price-desc') result.sort((a, b) => b.price - a.price);
     return result;
-  }, [category, sort, maxPrice, size, color, selectedCat, fabric]);
+  }, [cats, maxPrice, ratings, sizes, sort]);
 
-  const colors = ['#111', '#fff', '#d7282f', '#245f9c', '#198e92', '#e4c330'];
+  const shown = items.slice(0, visible);
+  const sizeOptions = [...new Set(pool.flatMap(p => p.sizes))];
+
+  const reset = () => {
+    setCats(fixed ? [fixed] : []);
+    setMaxPrice(SHOP_MAX_PRICE);
+    setRatings([]);
+    setSizes([]);
+    setVisible(perPage);
+  };
 
   return (
     <>
-      <Breadcrumb items={['Home', meta.title.split(' ')[0], category === 'men' ? 'T-Shirts' : meta.title]} />
-      <main className="container listing">
-        <button
-          className="mobile-filter"
-          onClick={() => setMobileFilter(!mobileFilter)}
-          data-testid="button-show-filters"
-        >
-          <SlidersHorizontal size={14} /> Filters
+      <ShopBanner
+        banner={banner}
+        crumbs={fixedName ? [['Home', '/'], ['Shop', '/shop'], [fixedName]] : [['Home', '/'], ['Shop']]}
+      />
+
+      <main className="container shop-layout">
+        <button className="shop-filter-toggle" onClick={() => setFiltersOpen(true)} data-testid="button-shop-filters">
+          <ListFilter size={20} /> Filter By
         </button>
+        {filtersOpen && <button className="shop-filter-backdrop" aria-label="Close filters" onClick={() => setFiltersOpen(false)} />}
 
-        {mobileFilter && (
-          <button
-            className="filter-backdrop"
-            aria-label="Close filters"
-            onClick={() => setMobileFilter(false)}
-            data-testid="button-close-filters"
-          />
-        )}
-
-        <aside className={`filters ${mobileFilter ? 'show' : ''}`}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <span style={{ fontSize: 13, fontWeight: 700 }}>Filters</span>
-            {hasActiveFilters && (
-              <button
-                onClick={resetFilters}
-                style={{ border: 0, background: 'none', color: '#d7282f', fontSize: 10, cursor: 'pointer' }}
-              >
-                Clear all
-              </button>
-            )}
+        <aside className={`shop-filters ${filtersOpen ? 'open' : ''}`}>
+          <div className="shop-filter-head">
+            <ListFilter size={20} /> Filter By
+            <button className="shop-filter-close" aria-label="Close filters" onClick={() => setFiltersOpen(false)}>
+              <X size={18} />
+            </button>
           </div>
 
-          <div className="filter-group">
-            <h4>Category</h4>
-            {[['T-Shirts', '24'], ['Hoodies', '12'], ['Oversized', '8'], ['Polo T-Shirts', '6']].map(([name, count]) => (
-              <label className="check-row" key={name}>
-                <input
-                  type="checkbox"
-                  checked={selectedCat === name}
-                  onChange={() => setSelectedCat(selectedCat === name ? '' : name)}
-                  data-testid={`filter-category-${name.toLowerCase().replaceAll(' ', '-')}`}
-                />
-                {name} ({count})
+          <div className="shop-filter-group">
+            <h3>Price Range</h3>
+            <input
+              type="range"
+              min={0}
+              max={SHOP_MAX_PRICE}
+              step={50}
+              value={maxPrice}
+              onChange={e => { setMaxPrice(Number(e.target.value)); setVisible(perPage); }}
+              className="shop-range"
+              data-testid="input-shop-price"
+            />
+            <div className="shop-range-row">
+              <span>₹0 – {currency(maxPrice)}</span>
+              <button onClick={reset} data-testid="button-shop-reset">RESET</button>
+            </div>
+          </div>
+
+          <div className="shop-filter-group">
+            <h3>Product Rating</h3>
+            {[5, 4, 3, 2, 1].map(r => (
+              <label className="shop-check" key={r}>
+                <input type="checkbox" checked={ratings.includes(r)} onChange={() => toggle(ratings, r, setRatings)} />
+                <span className="shop-stars">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <Star key={n} size={18} fill={n <= r ? 'currentColor' : 'none'} className={n <= r ? '' : 'off'} />
+                  ))}
+                </span>
               </label>
             ))}
           </div>
 
-          <div className="filter-group">
-            <h4>Size</h4>
-            <div className="size-row">
-              {['S', 'M', 'L', 'XL', 'XXL'].map(s => (
-                <button
-                  className={`size-btn ${size === s ? 'on' : ''}`}
-                  onClick={() => setSize(size === s ? '' : s)}
-                  key={s}
-                  data-testid={`filter-size-${s}`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <h4>Color</h4>
-            <div className="color-row">
-              {colors.map(c => (
-                <button
-                  key={c}
-                  className={`color-filter ${color === c ? 'on' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => setColor(color === c ? '' : c)}
-                  aria-label={`Filter ${getColorName(c)}`}
-                  data-testid={`filter-color-${c.replace('#', '')}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <h4>Price</h4>
-            <input
-              className="range"
-              type="range"
-              min="0"
-              max="2000"
-              value={maxPrice}
-              onChange={e => setMaxPrice(Number(e.target.value))}
-              data-testid="input-price-range"
-            />
-            <div className="range-labels">
-              <span>₹0</span>
-              <span>{currency(maxPrice)}</span>
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <h4>Fabric</h4>
-            {['Cotton', 'Cotton Blend', 'Premium', 'Oversized Fit'].map(x => (
-              <label className="check-row" key={x}>
+          <div className="shop-filter-group">
+            <h3>Product Categories</h3>
+            {shopCategories.map(c => (
+              <label className="shop-check" key={c.slug}>
                 <input
                   type="checkbox"
-                  checked={fabric.includes(x)}
-                  onChange={() =>
-                    setFabric(fabric.includes(x) ? fabric.filter(item => item !== x) : [...fabric, x])
-                  }
-                  data-testid={`filter-fabric-${x.toLowerCase().replaceAll(' ', '-')}`}
+                  checked={cats.includes(c.slug)}
+                  onChange={() => (fixed ? navigate(c.slug === fixed ? '/shop' : `/shop/${c.slug}`) : toggle(cats, c.slug, setCats))}
+                  data-testid={`filter-shop-${c.slug}`}
                 />
-                {x}
+                {c.name}
+                <span className="shop-count">({all.filter(p => p.category === c.slug).length})</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="shop-filter-group">
+            <h3>Size</h3>
+            {sizeOptions.map(sz => (
+              <label className="shop-check" key={sz}>
+                <input type="checkbox" checked={sizes.includes(sz)} onChange={() => toggle(sizes, sz, setSizes)} />
+                {sz}
               </label>
             ))}
           </div>
         </aside>
 
-        <section>
-          <div className="list-head">
-            <div>
-              <h1>{meta.title}</h1>
-              <p>{meta.description}</p>
-            </div>
-            <label className="sort">
-              Sort By{' '}
-              <select
-                value={sort}
-                onChange={e => setSort(e.target.value)}
-                data-testid="select-sort"
-              >
-                {['Popular', 'Price Low to High', 'Price High to Low', 'Newest', 'Rating'].map(s => (
-                  <option key={s}>{s}</option>
+        <section className="shop-main">
+          <div className="shop-toolbar">
+            <p className="shop-results">
+              {items.length
+                ? `Showing 1–${shown.length} of ${items.length} results`
+                : 'No products found'}
+            </p>
+            <div className="shop-toolbar-right">
+              <div className="shop-per-page" aria-label="Products per page">
+                {[9, 12, 18, 24].map((n, i) => (
+                  <span key={n}>
+                    {i > 0 && <i>/</i>}
+                    <button
+                      className={perPage === n ? 'on' : ''}
+                      onClick={() => { setPerPage(n); setVisible(n); }}
+                    >
+                      {n}
+                    </button>
+                  </span>
                 ))}
+              </div>
+              <select value={sort} onChange={e => setSort(e.target.value)} className="shop-sort" data-testid="select-shop-sort">
+                <option value="default">Default sorting</option>
+                <option value="popularity">Sort by popularity</option>
+                <option value="rating">Sort by average rating</option>
+                <option value="newest">Sort by latest</option>
+                <option value="price-asc">Sort by price: low to high</option>
+                <option value="price-desc">Sort by price: high to low</option>
               </select>
-            </label>
+            </div>
           </div>
 
-          <div className="product-grid listing-grid">
-            {items.length ? (
-              items.map(p => <ProductCard product={p} key={p.id} />)
-            ) : (
-              <div className="empty">
-                No products match these filters.
-                <br />
-                <button
-                  className="pill pill-dark"
-                  style={{ marginTop: 14 }}
-                  onClick={resetFilters}
-                >
-                  Reset All Filters
-                </button>
-              </div>
-            )}
-          </div>
+          {items.length ? (
+            <div className="shop-grid">
+              {shown.map(p => <ShopCard product={p} key={p.id} />)}
+            </div>
+          ) : (
+            <div className="shop-empty">
+              No products match these filters.
+              <button onClick={reset}>Reset Filters</button>
+            </div>
+          )}
+
+          {visible < items.length && (
+            <div className="shop-more">
+              <button onClick={() => setVisible(v => v + perPage)} data-testid="button-shop-load-more">Load More</button>
+            </div>
+          )}
         </section>
       </main>
     </>
@@ -989,20 +1302,26 @@ function QuantityStepper({
 // Keyed by slug so switching colour variants resets gallery and selections.
 function ProductDetail() {
   const { slug = '' } = useParams();
+  const hasProducts = useCatalog(s => s.products.length > 0);
+  if (!hasProducts) return <NotFound />;
   return <ProductDetailView key={slug} slug={slug} />;
 }
 
 function ProductDetailView({ slug }: { slug: string }) {
+  const products = useCatalog(s => s.products);
   const product = products.find(p => p.slug === slug) || products[0];
   const [color, setColor] = useState(slug === 'good-vibes-oversized-t-shirt' ? '#f1eee7' : product.colors[0]);
   const [size, setSize] = useState(slug === 'good-vibes-oversized-t-shirt' ? 'L' : product.sizes[1]);
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState('Description');
   const [thumb, setThumb] = useState(1);
-  const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewName, setReviewName] = useState('');
-  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewEmail, setReviewEmail] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [reviewSave, setReviewSave] = useState(false);
+  const [userReviews, setUserReviews] = useState<{ name: string; rating: number; date: string; text: string }[]>([]);
 
   const state = useStore();
   const wished = state.wishlist.includes(product.id);
@@ -1039,15 +1358,34 @@ function ProductDetailView({ slug }: { slug: string }) {
 
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewName || !reviewText) {
-      notify('Please fill in your name and review');
+    if (!reviewRating) {
+      notify('Please select a rating');
       return;
     }
-    notify('Thank you! Your review has been submitted for approval.');
-    setReviewOpen(false);
-    setReviewName('');
+    if (!reviewText.trim() || !reviewName.trim() || !reviewEmail.trim()) {
+      notify('Please fill in all required fields');
+      return;
+    }
+    const date = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    setUserReviews(prev => [{ name: reviewName.trim(), rating: reviewRating, date, text: reviewText.trim() }, ...prev]);
+    notify('Thank you! Your review has been submitted.');
+    setReviewRating(0);
     setReviewText('');
+    if (!reviewSave) {
+      setReviewName('');
+      setReviewEmail('');
+    }
   };
+
+  const shownReviews = [
+    ...userReviews,
+    { name: 'Rohan Sharma', rating: 5, date: 'June 17, 2026', text: 'The print quality blew my mind! Fabric is heavy, feels super premium like Zara or H&M streetwear. Fitting is 10/10.' },
+    { name: 'Pooja Verma', rating: 5, date: 'June 12, 2026', text: 'Received within 3 days in Mumbai. Looks even better in person than photos.' },
+  ];
+  // Split the catalogue rating into a plausible 5→1 star distribution.
+  const fivePct = Math.round(Math.min(100, Math.max(0, (product.rating - 4) * 100)));
+  const ratingBreakdown = [fivePct, Math.round((100 - fivePct) * 0.75), 0, 0, 0];
+  ratingBreakdown[2] = 100 - ratingBreakdown[0] - ratingBreakdown[1];
 
   return (
     <>
@@ -1298,86 +1636,73 @@ function ProductDetailView({ slug }: { slug: string }) {
               </table>
             </div>
           ) : tab.includes('Reviews') ? (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <div>
-                  <span className="stars" style={{ fontSize: 16 }}>★★★★★</span> &nbsp;
-                  <strong style={{ fontSize: 14 }}>{product.rating} out of 5</strong>
-                  <div style={{ fontSize: 11, color: '#777', marginTop: 2 }}>Based on {product.reviews} verified buyer ratings</div>
+            <div className="reviews-wrap">
+              <div className="reviews-left">
+                <h3 className="reviews-heading">Average Rating</h3>
+                <div className="reviews-avg">
+                  <strong>{product.rating.toFixed(2)}</strong>
+                  <span className="reviews-stars">★★★★★</span>
+                  <span>{product.reviews} Reviews</span>
                 </div>
-                <button
-                  className="pill pill-dark"
-                  style={{ padding: '8px 14px', fontSize: 11 }}
-                  onClick={() => setReviewOpen(true)}
-                >
-                  Write a Review
-                </button>
+                <div className="reviews-bars">
+                  {ratingBreakdown.map((pct, i) => (
+                    <div className="reviews-bar-row" key={i}>
+                      <span>{5 - i} star</span>
+                      <div className="reviews-bar"><i style={{ width: `${pct}%` }} /></div>
+                      <span>{pct}%</span>
+                    </div>
+                  ))}
+                </div>
+
+                <h3 className="reviews-heading reviews-list-title">
+                  {shownReviews.length} reviews for {product.name}
+                </h3>
+                <div className="reviews-list">
+                  {shownReviews.map((r, i) => (
+                    <div className="review-item" key={`${r.name}-${i}`}>
+                      <div className="review-avatar">{r.name[0].toUpperCase()}</div>
+                      <div>
+                        <div className="reviews-stars">
+                          {'★'.repeat(r.rating)}<span className="off">{'★'.repeat(5 - r.rating)}</span>
+                        </div>
+                        <div className="review-meta"><strong>{r.name}</strong> – {r.date}</div>
+                        <p>“{r.text}”</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div style={{ display: 'grid', gap: 12 }}>
-                <div style={{ background: '#fcfbf9', border: '1px solid #eee', padding: 14, borderRadius: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                    <strong>Rohan Sharma — Verified Buyer</strong>
-                    <span className="stars">★★★★★</span>
-                  </div>
-                  <p style={{ margin: '6px 0 0', fontSize: 11, color: '#555' }}>
-                    The print quality blew my mind! Fabric is heavy, feels super premium like Zara or H&M streetwear. Fitting is 10/10.
-                  </p>
+              <form onSubmit={handleReviewSubmit} className="review-form">
+                <h3 className="reviews-heading">Add a review</h3>
+                <p className="review-note">Your email address will not be published. Required fields are marked <em>*</em></p>
+                <label>Your rating <em>*</em></label>
+                <div className="review-star-input" onMouseLeave={() => setReviewHover(0)}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      type="button"
+                      key={n}
+                      className={(reviewHover || reviewRating) >= n ? 'on' : ''}
+                      onMouseEnter={() => setReviewHover(n)}
+                      onClick={() => setReviewRating(n)}
+                      aria-label={`${n} star${n > 1 ? 's' : ''}`}
+                    >
+                      {(reviewHover || reviewRating) >= n ? '★' : '☆'}
+                    </button>
+                  ))}
                 </div>
-                <div style={{ background: '#fcfbf9', border: '1px solid #eee', padding: 14, borderRadius: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                    <strong>Pooja Verma — Verified Buyer</strong>
-                    <span className="stars">★★★★★</span>
-                  </div>
-                  <p style={{ margin: '6px 0 0', fontSize: 11, color: '#555' }}>
-                    Received within 3 days in Mumbai. The Good Vibes tee looks even better in person than photos.
-                  </p>
-                </div>
-              </div>
-
-              {reviewOpen && (
-                <div style={{ marginTop: 20, background: '#f8f6f2', padding: 16, borderRadius: 10, border: '1px solid #eee' }}>
-                  <h4 style={{ margin: '0 0 10px', fontSize: 13 }}>Share your feedback</h4>
-                  <form onSubmit={handleReviewSubmit} className="review-form">
-                    <input
-                      placeholder="Your Full Name"
-                      value={reviewName}
-                      onChange={e => setReviewName(e.target.value)}
-                    />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
-                      Rating:
-                      <select
-                        value={reviewRating}
-                        onChange={e => setReviewRating(Number(e.target.value))}
-                        style={{ border: '1px solid #ddd', borderRadius: 4, padding: 4 }}
-                      >
-                        <option value={5}>★★★★★ (5 Stars)</option>
-                        <option value={4}>★★★★☆ (4 Stars)</option>
-                        <option value={3}>★★★☆☆ (3 Stars)</option>
-                      </select>
-                    </div>
-                    <textarea
-                      rows={3}
-                      placeholder="Write your review here..."
-                      value={reviewText}
-                      onChange={e => setReviewText(e.target.value)}
-                    />
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button type="submit" className="pill pill-dark" style={{ padding: '8px 16px', fontSize: 10 }}>
-                        Submit Review
-                      </button>
-                      <button
-                        type="button"
-                        className="pill pill-outline"
-                        style={{ padding: '8px 16px', fontSize: 10 }}
-                        onClick={() => setReviewOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
+                <label htmlFor="review-text">Your review <em>*</em></label>
+                <textarea id="review-text" rows={4} value={reviewText} onChange={e => setReviewText(e.target.value)} />
+                <label htmlFor="review-name">Name <em>*</em></label>
+                <input id="review-name" value={reviewName} onChange={e => setReviewName(e.target.value)} />
+                <label htmlFor="review-email">Email <em>*</em></label>
+                <input id="review-email" type="email" value={reviewEmail} onChange={e => setReviewEmail(e.target.value)} />
+                <label className="review-save">
+                  <input type="checkbox" checked={reviewSave} onChange={e => setReviewSave(e.target.checked)} />
+                  Save my name, email, and website in this browser for the next time I comment.
+                </label>
+                <button type="submit" className="review-submit">Submit</button>
+              </form>
             </div>
           ) : (
             <div>
@@ -1694,6 +2019,19 @@ function Checkout({ onOrderPlaced }: { onOrderPlaced: (order: { id: string; tota
     }
     const orderId = `#JH-${Math.floor(100000 + Math.random() * 900000)}`;
     const totalCount = state.cart.reduce((n, i) => n + i.quantity, 0);
+    useCatalog.getState().addOrder({
+      id: orderId,
+      date: new Date().toISOString(),
+      status: 'Pending',
+      payment,
+      customer: checkoutForm.getValues(),
+      items: state.cart.map(i => ({
+        name: i.product.name, slug: i.product.slug, image: i.product.image,
+        price: i.product.price, quantity: i.quantity, color: i.color, size: i.size,
+      })),
+      subtotal,
+      total,
+    });
     onOrderPlaced({ id: orderId, total, count: totalCount });
     store.clear();
   };
@@ -2004,7 +2342,7 @@ function CustomPrint() {
   const [file, setFile] = useState('');
   const [is3D, setIs3D] = useState(false);
 
-  const custom = products[0];
+  const custom = baseProducts[0];
   const customPrice = productType === 'Hoodie' ? 999 : productType === 'Cushion Cover' ? 449 : 499;
   const customImage =
     productType === 'Hoodie'
@@ -2031,7 +2369,7 @@ function CustomPrint() {
 
   return (
     <>
-      <Breadcrumb items={['Home', 'Custom Print']} />
+      <ShopBanner banner={shopBanners['custom-print']} crumbs={[['Home', '/'], ['Custom Print']]} />
       <main className="container">
         <div className="section-heading">
           <h2 className="serif">Create Your Own T-Shirt</h2>
@@ -2208,6 +2546,7 @@ function CustomPrint() {
 
 function Wishlist() {
   const state = useStore();
+  const products = useCatalog(s => s.products);
   const saved = products.filter(p => state.wishlist.includes(p.id));
 
   const handleMoveAllToCart = () => {
@@ -2281,11 +2620,33 @@ function App() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [infoModal, setInfoModal] = useState<{ title: string; content: string } | null>(null);
   const [orderModal, setOrderModal] = useState<{ id: string; total: number; count: number } | null>(null);
+  const [location] = useLocation();
 
   globalToastHandler = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(''), 2500);
   };
+
+  useEffect(() => {
+    const onFull = () => notify('Storage is full — use smaller images or image URLs. Last change was not saved.');
+    window.addEventListener('catalog-storage-full', onFull);
+    return () => window.removeEventListener('catalog-storage-full', onFull);
+  }, []);
+
+  const toastEl = toast && (
+    <div role="status" className="toast" data-testid="status-toast">
+      {toast}
+    </div>
+  );
+
+  if (location.startsWith('/admin')) {
+    return (
+      <>
+        <AdminPage notify={notify} />
+        {toastEl}
+      </>
+    );
+  }
 
   const handleOpenInfo = (topic: string) => {
     setInfoModal({
@@ -2303,8 +2664,10 @@ function App() {
 
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/shop/:category" component={Listing} />
+        <Route path="/shop">{() => <Shop />}</Route>
+        <Route path="/shop/:category" component={CategoryShop} />
         <Route path="/product/:slug" component={ProductDetail} />
+        <Route path="/blog/:slug" component={BlogPostPage} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout">
           <Checkout onOrderPlaced={order => setOrderModal(order)} />
@@ -2321,11 +2684,7 @@ function App() {
       <InfoModal info={infoModal} onClose={() => setInfoModal(null)} />
       <OrderSuccessModal order={orderModal} onClose={() => setOrderModal(null)} />
 
-      {toast && (
-        <div role="status" className="toast" data-testid="status-toast">
-          {toast}
-        </div>
-      )}
+      {toastEl}
     </>
   );
 }
