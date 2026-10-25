@@ -1,0 +1,214 @@
+I am attaching a screenshot of an e-commerce website design called "JexHome" (custom apparel & home decor brand, Indian market, prices in ₹). Build this website as a MULTI-PAGE Next.js app that matches this design PIXEL-PERFECT. Do not improvise, do not "improve" the design, do not change text, spacing style, colors or layout. Every text, price, rating and label below is taken exactly from the design — use them exactly.
+
+==================================================
+TECH STACK (mandatory)
+==================================================
+- Next.js 15 (App Router, /app directory) + TypeScript. NOT plain React / Vite / CRA.
+- Tailwind CSS for styling.
+- next/font/google for fonts, next/image for all images, next/link for navigation.
+- lucide-react for icons.
+- Zustand (with persist to localStorage) for cart + wishlist state.
+- All product data in /data/products.ts (typed). Dynamic product route using slug.
+- Fully responsive: desktop exactly like design; tablet and mobile adapt cleanly (hamburger menu on mobile, filters become a slide-in drawer on mobile, grids collapse to 2 / 1 columns).
+- Images: put placeholders in /public/images/... with clear filenames (e.g. hero-model.png, cat-men.png, good-vibes-front.png) so I can replace them with my own images. Logo at /public/logo.png (I will provide it) — use <Image> for it in the navbar.
+
+==================================================
+DESIGN SYSTEM
+==================================================
+Colors:
+- Primary red (buttons, "Story" word, active states, badges, cart count): #D7282F (bright crimson red)
+- Black (text, black pill buttons, active filter tab, checked checkboxes): #111111
+- Page background: warm off-white / cream #F8F6F2
+- Product image background: very light grey #F2F2F2
+- Card background: white #FFFFFF with very subtle border #EEEEEE and soft shadow
+- Muted text: #6B6B6B
+- Star rating: amber #F5A623
+- Discount badge: light red background #FDECEC with red text
+- Discount amount in cart summary: green (-₹100); in checkout summary: red (-₹100) — keep exactly like this.
+
+Typography:
+- Big display headings ("Style Your Story", "Featured Products", "Create Your Own T-Shirt"): high-contrast bold serif — use "DM Serif Display" (or Playfair Display, bold).
+- Everything else (nav, body, product names, prices, page titles like "Men T-Shirts", "Your Cart"): clean sans-serif — use "Inter" (or Poppins).
+- Hero eyebrow "CUSTOM APPAREL & HOME DECOR": small uppercase, wide letter-spacing (~0.3em).
+- Cursive handwritten text "Wear Your Story" on hero image: use "Caveat" or "Dancing Script".
+
+Shapes:
+- Primary buttons: fully rounded pills (Shop Collection, Customize Your Own, Start Designing).
+- Add to Cart / Proceed to Checkout / Continue to Payment: red, rounded corners (~8px), full width of their column.
+- Cards: rounded ~12–16px.
+- Wishlist heart: small white circle top-right of every product image.
+- Color swatches: small filled circles (~12–14px on cards, ~24px on product page; selected one has a ring/outline).
+- Size selectors: small square bordered boxes (S, M, L, XL, XXL).
+
+==================================================
+GLOBAL NAVBAR (same on every page)
+==================================================
+- Left: logo "JexHome" (image from /public/logo.png).
+- Center/right links: Men, Women, Kids, Hoodies, Cushions & Pillow, Custom Print (small, dark, medium weight).
+- Right icons: Search, User, Cart (cart has a small red circular badge with item count, e.g. "1").
+- On inner pages (product detail, checkout) there is one extra icon between User and Cart (wishlist/hanger style) — include it on all pages for consistency.
+- White/cream background, sticky on scroll, thin bottom separation.
+- Breadcrumbs on inner pages: small grey text with ">" separators (e.g. Home > Men > T-Shirts).
+
+==================================================
+PAGE 1: HOME  ( / )
+==================================================
+1) HERO (cream/beige soft gradient background, large, curved soft bottom edge)
+   Left side:
+   - Eyebrow: "CUSTOM APPAREL & HOME DECOR"
+   - Heading (2 lines, huge serif): "Style" / "Your Story" — the word "Story" in red, rest black.
+   - Paragraph: "Premium T-shirts, Hoodies, Kidswear, Cushions and more — with custom printing made just for you."
+   - Buttons: "Shop Collection →" (black filled pill, white text) and "Customize Your Own" (outlined pill, black border, transparent bg).
+   - Below, a row of 4 small features, each = outline icon + 2 lines of small text:
+     • Shield-check icon — "Premium" / "Quality Fabric"
+     • Sparkle/pen icon — "Custom" / "Printing"
+     • Truck icon — "Fast & Secure" / "Delivery"
+     • Globe/circle icon — "Designed" / "for Everyone"
+   Right side:
+   - Large image: young man with curly hair, seen from back/side, wearing off-white t-shirt with back print "GOOD THINGS TAKE TIME" + black botanical leaves and orange sun illustration. Image blends into background (no box).
+   - Cursive text "Wear Your Story" at the top-right over the image, with a small decorative stroke.
+
+2) CATEGORY CARDS — 4 cards in one row, each with pastel background, title + subtitle top-left, model/product image on the right, and a white circular button with "→" arrow bottom-left:
+   - "Men" / "T-Shirts & Hoodies" — light blue bg, man in black graphic tee
+   - "Women" / "Trendy & Comfortable" — light pink bg, woman in white graphic tee
+   - "Kids" / "Cute & Fun Styles" — light yellow/peach bg, boy in yellow tee
+   - "Cushions & Pillow" / "Decorate Your Space" — light grey-beige bg, cushions on a sofa
+   Each card links to its category page.
+
+3) FEATURED PRODUCTS
+   - Left: serif heading "Featured Products".
+   - Filter tabs (functional client-side): "All" (active = black pill, white text), "T-Shirts", "Hoodies", "Kids", "Cushions", "Custom Print".
+   - Right: "View All →".
+   - 4 product cards in a row:
+     • Minimal Text T-Shirt — ₹499 — ★4.8 (120) — swatches: black, teal, red
+     • Oversized Hoodie — ₹999 — ★4.7 (96) — swatches: black, red, deep purple
+     • Dino Kids T-Shirt — ₹399 — ★4.8 (70) — swatches: yellow, blue, teal
+     • Graphic Art T-Shirt — ₹549 — ★4.7 (84) — swatches: black, rust orange, blue
+   - PRODUCT CARD (reuse everywhere): white card, image on light grey bg, heart button top-right, product name (regular), price bold with ₹, 5 small amber stars + "4.8 (120)" in grey, color dots row. Hover: subtle lift/shadow + image slight zoom.
+
+4) CUSTOM DESIGN BANNER (full-width rounded dark banner, near-black bg with orange brush-stroke/paint splash textures)
+   - Left: white serif heading 3 lines "Create" / "Your Own" / "T-Shirt"; text "Turn your ideas into wearable art with our easy custom designer."; red pill button "Start Designing →" (links to /custom-print).
+   - Center: white t-shirt mockup with "GOOD VIBES" graffiti print and orange smiley face, orange paint splashes around.
+   - Right: floating white rounded card with vertical tool list, each with an icon: Upload, Text, Graphics, Colors, Preview (3D).
+
+5) FOOTER — not shown in design. Build a simple footer in the SAME style (cream bg, logo, link columns: Shop / Help / Company, social icons, copyright "© JexHome"). Keep it minimal, don't add new colors.
+
+==================================================
+PAGE 2: PRODUCT LISTING  ( /shop/[category] , e.g. /shop/men )
+==================================================
+Example shown in design = "Men T-Shirts". The same template is used for Women, Kids, Hoodies, Cushions & Pillow.
+- Breadcrumb: Home > Men > T-Shirts
+- LEFT SIDEBAR (white card, filters all functional):
+  • Category (checkboxes, checked = black filled): T-Shirts (24) [checked], Hoodies (12), Oversized (8), Polo T-Shirts (6)
+  • Size: square boxes S, M, L, XL, XXL
+  • Color: circles — black/dark maroon, white, red, blue, teal, yellow
+  • Price: range slider with red track, labels ₹0 and ₹2000
+  • Fabric (checkboxes): Cotton, Cotton Blend, Premium, Oversized Fit
+- MAIN AREA:
+  • Title "Men T-Shirts" (sans, semibold, large), subtitle "Explore our premium collection of men's t-shirts."
+  • Right: "Sort By" + dropdown showing "Popular" (options: Popular, Price Low to High, Price High to Low, Newest, Rating)
+  • 3-column product grid (same Product Card):
+    - Good Vibes T-Shirt — ₹499 — ★4.8 (120) — black, salmon, magenta
+    - Abstract Print T-Shirt — ₹549 — ★4.7 (96) — light blue, navy, black
+    - Basic Oversized T-Shirt — ₹499 — ★4.6 (72) — red, magenta, purple
+    - Skull Art T-Shirt — ₹599 — ★4.7 (68) — orange, purple, blue
+    - Typography T-Shirt — ₹499 — ★4.8 (91) — orange, brown-red, black
+    - Moon Graphic T-Shirt — ₹549 — ★4.7 (64) — orange, navy, grey
+  • Clicking a card opens product detail page.
+
+==================================================
+PAGE 3: PRODUCT DETAIL  ( /product/[slug] , e.g. /product/good-vibes-oversized-t-shirt )
+==================================================
+- Breadcrumb: Home > Men > T-Shirts > Good Vibes Oversized T-Shirt
+- LEFT: vertical thumbnail strip (5 thumbs: front off-white tee, black tee back, model photo, flat-lay, and a video thumb with play icon). Active thumb has red border. Clicking changes main image.
+- CENTER: large main image on light grey rounded bg, heart icon top-right, bottom center small text "360°  Drag to rotate".
+- RIGHT (info column):
+  • Title: "Good Vibes Oversized T-Shirt" (bold, large)
+  • ★★★★★ 4.8 (120 reviews)
+  • Price row: "₹499" (big bold) + "₹699" (grey strikethrough) + badge "28% OFF" (light red bg, red text)
+  • "Premium cotton oversized t-shirt with bold print. Soft, breathable and perfect for everyday wear."
+  • "Color: Off White" + swatches: off-white (selected, ringed), black, red, blue, teal, yellow — selecting updates the label.
+  • "Size:" left + "Size Guide" (underlined link) right; boxes S, M, L, XL, XXL (selectable, selected = black border/fill).
+  • Row: quantity stepper (− 1 +) + red full-width "Add to Cart" button (adds to Zustand cart, updates navbar badge, shows a small toast).
+  • Below: heart icon + "Add to Wishlist".
+- FEATURE STRIP (4 items in a bordered row, circular outline icons):
+  • Premium Fabric — 100% Cotton
+  • Breathable — All Day Comfort
+  • DTG Printing — Long Lasting Print
+  • Easy Returns — 7 Days Return
+- TABS (functional): "Description" (active: red text + red underline), "Size Guide", "Reviews (120)", "Shipping & Returns".
+  Description tab content:
+  "Make a statement with our Good Vibes Oversized T-Shirt. Crafted from premium cotton, this t-shirt offers all-day comfort with a bold and vibrant print. Perfect for casual outings, gym or everyday wear."
+  Bullets: 100% Premium Cotton • Oversized Fit • High Quality DTG Print • Soft, Breathable & Comfortable • Unisex Design
+  Right side of tab content: rounded image of model (back view) wearing the "GOOD THINGS" tee.
+  Size Guide tab: simple size chart table. Reviews tab: a few sample reviews with stars. Shipping & Returns tab: short text.
+
+==================================================
+PAGE 4: CART  ( /cart )
+==================================================
+- Breadcrumb: Cart
+- Heading "Your Cart" (bold) + "(3 items)" (regular); "Clear Cart" link on the right.
+- Cart item rows (each: checkbox (checked, black), thumbnail on grey bg, name, variant in grey, qty stepper − 1 +, price, trash icon top-right):
+  • Good Vibes Oversized T-Shirt — Off White / L — ₹499, ₹699 strikethrough, "28% OFF" badge
+  • Abstract Print T-Shirt — Black / M — ₹549
+  • Dino Kids T-Shirt — Yellow / 5-6 Years — ₹399
+- Below items: input "Apply Coupon Code" + black button "Apply".
+- Trust row (3 items, circular outline icons): "Secure Payment" / "100% Safe & Secure"; "Free Shipping" / "On orders above ₹499"; "Easy Returns" / "7 Days Return".
+- RIGHT: sticky "Order Summary" card:
+  Subtotal ₹1,447 | Discount − ₹100 (green) | Shipping ₹50 | divider | Total ₹1,397 (bold, larger)
+  Red full-width button "Proceed to Checkout →" (goes to /checkout).
+- All values calculated from cart state (initial demo cart = these 3 items). Use Indian number format (₹1,447).
+
+==================================================
+PAGE 5: CHECKOUT  ( /checkout )
+==================================================
+- Step breadcrumb: Cart > Information > Shipping > Payment ("Information" active = bold black, others grey).
+- LEFT: "1. Shipping Address" form. Inputs have small grey labels INSIDE the bordered box above the value (floating-label style):
+  Full Name (Akash Kumar) — full width
+  Phone Number (+91 95993 42525) | Email Address (akash@example.com) — 2 columns
+  Address (123, Sector 15) — full width
+  Apartment, suite, etc. (optional) (Near Metro Station) — full width
+  State (dropdown: New Delhi) | City (dropdown: Delhi) | Pincode (110015) — 3 columns
+  Checkbox (checked, black): "Save this address for next time"
+  Red full-width button "Continue to Payment →"
+  (Use these values as placeholders, with basic form validation.)
+- RIGHT: "Order Summary" card with "Edit" link (to /cart):
+  item list with small thumbnails: Good Vibes Oversized T-Shirt (Off White / L) ₹499; Abstract Print T-Shirt (Black / M) ₹549; Dino Kids T-Shirt (Yellow / 5-6 Years) ₹399
+  Subtotal ₹1,447 | Discount − ₹100 (red) | Shipping ₹50 | Total ₹1,397 (bold)
+  "Payment Method" radio list:
+   ○ UPI (GPay, PhonePe, Paytm etc.) — UPI icon on right
+   ○ Credit / Debit Card — VISA + Mastercard logos on right
+   ○ Cash on Delivery (COD) — cash icon on right
+
+==================================================
+PAGE 6: CUSTOM PRINT  ( /custom-print )
+==================================================
+Not shown as a full page in the design — build it using ONLY the existing design language (cream bg, serif headings, red/black buttons, white rounded cards). Layout: left = tool panel with the same 5 tools as the home banner (Upload, Text, Graphics, Colors, Preview (3D)); center = large t-shirt mockup canvas where uploaded image/text appears; right = product options (product type, color swatches, size boxes, price, red "Add to Cart").
+
+Other routes: /shop/women, /shop/kids, /shop/hoodies, /shop/cushions-pillow — same listing template with their own products (add 6 realistic products each with ₹ prices, ratings, swatches). /wishlist — grid of wishlisted products using the same product card.
+
+==================================================
+FOLDER STRUCTURE
+==================================================
+app/
+  layout.tsx (Navbar + Footer + fonts)
+  page.tsx (home)
+  shop/[category]/page.tsx
+  product/[slug]/page.tsx
+  cart/page.tsx
+  checkout/page.tsx
+  custom-print/page.tsx
+  wishlist/page.tsx
+components/ (Navbar, Footer, ProductCard, Breadcrumb, Rating, ColorSwatches, SizeSelector, QuantityStepper, FilterSidebar, OrderSummary, CategoryCard, FeatureStrip, Tabs, etc.)
+data/products.ts
+store/cart.ts, store/wishlist.ts
+lib/format.ts (₹ Indian currency formatter)
+public/images/..., public/logo.png
+
+==================================================
+RULES
+==================================================
+- Match the screenshot exactly: same text, same order of sections, same colors, same rounded shapes, same spacing feel (lots of whitespace, clean premium look).
+- Do not add extra sections, banners, popups or colors that are not in the design.
+- Reusable components, clean TypeScript, no lint errors, `npm run dev` should work first time.
+- Give me the complete code for every file, plus install commands and a list of image filenames I need to add.
