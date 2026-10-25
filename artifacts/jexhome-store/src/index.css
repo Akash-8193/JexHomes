@@ -1,0 +1,549 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* LIGHT MODE */
+:root {
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
+
+  /* Automatic computation of border around primary / danger buttons */
+  --opaque-button-border-intensity: -8; /* In terms of percentages */
+
+  /* Backgrounds applied on top of other backgrounds when hovered/active */
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
+
+  --background: 42 27% 96%;
+
+  --foreground: 0 0% 7%;
+
+  --border: 0 0% 91%;
+
+  --card: 0 0% 100%;
+
+  --card-foreground: 0 0% 7%;
+
+  --card-border: 0 0% 93%;
+
+  --sidebar: 42 27% 96%;
+
+  --sidebar-foreground: 0 0% 7%;
+
+  --sidebar-border: 0 0% 91%;
+
+  --sidebar-primary: 0 0% 7%;
+
+  --sidebar-primary-foreground: 0 0% 100%;
+
+  --sidebar-accent: 42 20% 92%;
+
+  --sidebar-accent-foreground: 0 0% 7%;
+
+  --sidebar-ring: 0 74% 50%;
+
+  --popover: 0 0% 100%;
+
+  --popover-foreground: 0 0% 7%;
+
+  --popover-border: 0 0% 91%;
+
+  --primary: 356 70% 50%;
+
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 42 20% 92%;
+
+  --secondary-foreground: 0 0% 7%;
+
+  --muted: 42 20% 92%;
+
+  --muted-foreground: 0 0% 42%;
+
+  --accent: 356 70% 50%;
+
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 68% 45%;
+
+  --destructive-foreground: 0 0% 100%;
+
+  --input: 0 0% 86%;
+  --ring: 356 70% 50%;
+  --chart-1: 356 70% 50%;
+  --chart-2: 25 70% 55%;
+  --chart-3: 160 25% 45%;
+  --chart-4: 210 30% 55%;
+  --chart-5: 42 65% 60%;
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: 'DM Serif Display', Georgia, serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: 0.5rem; /* 8px */
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0); /*replace with H S L */
+  --shadow-sm:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-md:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-lg:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-xl:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* Automatically computed borders - intensity can be controlled by the user by the --opaque-button-border-intensity setting */
+
+  /* Fallback for older browsers */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(
+    from hsl(var(--sidebar-primary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+
+  /* Fallback for older browsers */
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(
+    from hsl(var(--sidebar-accent)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+
+  /* Fallback for older browsers */
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(
+    from hsl(var(--primary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+
+  /* Fallback for older browsers */
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(
+    from hsl(var(--secondary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+
+  /* Fallback for older browsers */
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(
+    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) /
+      alpha
+  );
+
+  /* Fallback for older browsers */
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(
+    from hsl(var(--accent)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+
+  /* Fallback for older browsers */
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(
+    from hsl(var(--destructive)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
+}
+
+.dark {
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
+
+  --opaque-button-border-intensity: 9; /* In terms of percentages */
+
+  /* Backgrounds applied on top of other backgrounds when hovered/active */
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
+
+  --background: 24 10% 10%;
+
+  --foreground: 42 27% 96%;
+
+  --border: 0 0% 23%;
+
+  --card: 24 10% 13%;
+
+  --card-foreground: 42 27% 96%;
+
+  --card-border: 0 0% 23%;
+
+  --sidebar: 24 10% 10%;
+
+  --sidebar-foreground: 42 27% 96%;
+
+  --sidebar-border: 0 0% 23%;
+
+  --sidebar-primary: 356 70% 50%;
+
+  --sidebar-primary-foreground: 0 0% 100%;
+
+  --sidebar-accent: 24 9% 20%;
+
+  --sidebar-accent-foreground: 42 27% 96%;
+
+  --sidebar-ring: 356 70% 50%;
+
+  --popover: 24 10% 13%;
+
+  --popover-foreground: 42 27% 96%;
+
+  --popover-border: 0 0% 23%;
+
+  --primary: 356 70% 50%;
+
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 24 9% 20%;
+
+  --secondary-foreground: 42 27% 96%;
+
+  --muted: 24 9% 20%;
+
+  --muted-foreground: 0 0% 70%;
+
+  --accent: 356 70% 50%;
+
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 68% 45%;
+
+  --destructive-foreground: 0 0% 100%;
+
+  /* Used as the border around inputs. Dark mode: Should be a border that is light enough to have high contrast when rendered on a --card background. More contrast than standard --border */
+  --input: 0 0% 30%;
+  --ring: 356 70% 50%;
+  --chart-1: 356 70% 50%;
+  --chart-2: 25 70% 55%;
+  --chart-3: 160 25% 45%;
+  --chart-4: 210 30% 55%;
+  --chart-5: 42 65% 60%;
+
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-sm:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-md:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-lg:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-xl:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+:root{font-family:var(--app-font-sans);font-synthesis:none;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:#f8f6f2;color:#111}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.serif{font-family:var(--app-font-serif)}
+.container{width:min(1190px,calc(100% - 48px));margin-inline:auto}
+.topbar{height:70px;background:#fffdfb;border-bottom:1px solid #eee;position:sticky;top:0;z-index:50}
+.nav-inner{height:100%;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{width:124px;display:flex;align-items:center}.brand img{width:100%;height:auto}
+.navlinks{display:flex;align-items:center;gap:24px;font-size:12px;font-weight:600;white-space:nowrap}
+.navlinks a:hover,.foot-links a:hover{color:#d7282f}
+.nav-actions{display:flex;align-items:center;gap:16px}.icon-btn{border:0;background:transparent;position:relative;padding:4px;color:#151515;display:grid;place-items:center}.count{position:absolute;right:-7px;top:-5px;background:#d7282f;color:white;border-radius:99px;font-size:9px;min-width:16px;height:16px;display:grid;place-items:center}
+.mobile-toggle{display:none}
+.hero{background:linear-gradient(120deg,#f5eee4,#faf7f1 64%,#efe2d5);border-radius:0 0 48% 4%;overflow:hidden;min-height:486px}
+.hero-layout{display:grid;grid-template-columns:1fr 1fr;align-items:center;min-height:486px}
+.hero-copy{padding:34px 0 42px}.eyebrow{font-size:10px;letter-spacing:.28em;font-weight:600;color:#514c45}
+.hero h1{font-size:clamp(56px,6.4vw,86px);line-height:.83;margin:22px 0 20px;letter-spacing:-.04em}.hero h1 span{color:#d7282f}
+.hero-copy p{font-size:14px;line-height:1.65;color:#46423d;max-width:390px;margin:0 0 21px}
+.pill{border-radius:999px;padding:13px 22px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:9px;border:1px solid #171717}
+.pill-dark{background:#111;color:#fff}.pill-outline{background:transparent;color:#111;margin-left:9px}
+.hero-image{height:430px;position:relative;display:flex;align-items:center;justify-content:center}
+.hero-image img{width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.handwritten{font-family:'Caveat',cursive;font-size:30px;position:absolute;right:4%;top:38px;transform:rotate(8deg)}
+.features{display:flex;gap:23px;margin-top:32px}.feature{display:flex;align-items:center;gap:8px;color:#272727;font-size:9px;line-height:1.35}.feature svg{width:19px;stroke-width:1.4}
+.categories{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;padding:24px 0 48px}
+.category-card{height:135px;border-radius:13px;position:relative;overflow:hidden;padding:17px;display:flex;flex-direction:column;justify-content:flex-start}
+.category-card h3{font-size:17px;margin:0 0 3px;position:relative;z-index:1}.category-card p{font-size:9px;margin:0;color:#4d4d4d;position:relative;z-index:1}
+.category-card img{position:absolute;right:0;bottom:0;width:52%;height:92%;object-fit:contain;mix-blend-mode:multiply}
+.round-arrow{position:absolute;bottom:12px;left:14px;width:30px;height:30px;border-radius:50%;background:white;display:grid;place-items:center;z-index:2}
+.section-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:19px}
+.section-heading h2{font-size:32px;margin:0;line-height:1}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}.tab{border:0;border-radius:99px;background:transparent;padding:9px 13px;font-size:10px;color:#454545}.tab.active{background:#111;color:white}
+.view-all{font-size:11px;font-weight:600;white-space:nowrap}
+.product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px}
+.product-card{background:#fff;border:1px solid #eee;border-radius:13px;overflow:hidden;transition:transform .2s,box-shadow .2s;min-width:0}
+.product-card:hover{transform:translateY(-3px);box-shadow:0 9px 22px #382b2012}
+.product-visual{height:220px;background:#f2f2f2;position:relative;overflow:hidden;display:grid;place-items:center}
+.product-visual img{width:90%;height:94%;object-fit:contain;transition:transform .3s}.product-card:hover .product-visual img{transform:scale(1.035)}
+.heart{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:50%;background:white;position:absolute;right:11px;top:11px;z-index:2;color:#111}
+.heart.selected{color:#d7282f}.product-meta{padding:12px 13px 13px}.product-title{font-size:12px;font-weight:500;margin:0 0 7px}
+.price-line{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700}.rating{font-size:9px;color:#6b6b6b;margin-top:6px}.stars{color:#f5a623;letter-spacing:1px;font-size:11px}
+.swatches{display:flex;gap:7px;margin-top:9px}.swatch{width:13px;height:13px;border-radius:50%;border:1px solid #ddd;padding:0}.swatch.active{outline:1px solid #555;outline-offset:2px}
+.home-products{padding:0 0 48px}
+.custom-banner{background:#111;border-radius:15px;color:white;min-height:282px;display:grid;grid-template-columns:1fr 1.15fr .55fr;align-items:center;overflow:hidden;padding:25px 36px;margin-bottom:54px;position:relative}
+.banner-copy h2{font-size:44px;line-height:.88;margin:0 0 13px}.banner-copy p{font-size:11px;line-height:1.6;color:#ddd;max-width:230px;margin-bottom:17px}
+.banner-shirt{height:252px;display:grid;place-items:center;position:relative}.banner-shirt img{height:100%;width:100%;object-fit:contain}
+.tool-list{background:#fff;color:#222;border-radius:12px;padding:13px 15px;display:grid;gap:12px;font-size:10px;position:relative;z-index:1}.tool-list div{display:flex;align-items:center;gap:9px}.tool-list svg{width:14px}
+.footer{border-top:1px solid #e7e2dc;padding:34px 0 22px;background:#f8f6f2}.footer-inner{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:30px}.footer-logo{width:118px}.footer h4{font-size:11px;margin:2px 0 13px}.foot-links{display:grid;gap:9px;color:#68635e;font-size:10px}
+.crumb{font-size:10px;color:#777;padding:17px 0}.crumb span{margin:0 8px;color:#aaa}
+.listing{display:grid;grid-template-columns:220px 1fr;gap:30px;padding-bottom:65px}
+.filters{background:white;border:1px solid #eee;border-radius:12px;padding:19px;height:max-content}
+.filter-group{border-bottom:1px solid #eee;padding:0 0 18px;margin-bottom:17px}.filter-group:last-child{border:0;margin:0;padding:0}.filter-group h4{font-size:12px;margin:0 0 13px}
+.check-row{font-size:10px;color:#454545;display:flex;align-items:center;gap:8px;margin:10px 0}.check-row input{accent-color:#111}
+.size-row{display:flex;gap:5px;flex-wrap:wrap}.size-btn{width:30px;height:29px;border:1px solid #ddd;background:white;border-radius:3px;font-size:9px}.size-btn.on{background:#111;color:#fff;border-color:#111}
+.color-row{display:flex;gap:9px;flex-wrap:wrap}.color-filter{width:15px;height:15px;border-radius:50%;border:1px solid #ddd;padding:0}.color-filter.on{outline:1px solid #111;outline-offset:2px}
+.range{width:100%;accent-color:#d7282f}.range-labels{display:flex;justify-content:space-between;font-size:9px;color:#666}
+.list-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}.list-head h1{font-size:25px;margin:0 0 6px}.list-head p{font-size:11px;color:#6b6b6b;margin:0}.sort{display:flex;align-items:center;gap:8px;font-size:10px}.sort select{border:1px solid #ddd;background:#fff;border-radius:5px;padding:8px}
+.listing-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.empty{background:#fff;border:1px solid #eee;border-radius:13px;text-align:center;padding:46px 20px;color:#68635e;grid-column:1/-1}
+.detail{display:grid;grid-template-columns:58px minmax(300px,1fr) minmax(320px,.86fr);gap:17px;padding-bottom:34px}
+.thumbs{display:flex;flex-direction:column;gap:9px}.thumb{width:58px;height:66px;background:#f0efed;border:1px solid #ddd;border-radius:6px;padding:3px}.thumb.active{border:2px solid #d7282f}.thumb img{width:100%;height:100%;object-fit:contain}
+.detail-image{height:490px;border-radius:12px;background:#f1f1f1;position:relative;display:grid;place-items:center}.detail-image img{width:88%;height:93%;object-fit:contain}.rotate-hint{position:absolute;bottom:16px;font-size:9px;color:#777}
+.detail-info h1{font-size:25px;margin:7px 0}.detail-rating{font-size:10px;color:#666;margin-bottom:15px}.detail-price{display:flex;align-items:center;gap:10px;margin-bottom:12px}.detail-price strong{font-size:25px}.old{color:#888;text-decoration:line-through;font-size:13px}.discount{background:#fdecec;color:#d7282f;padding:5px 8px;border-radius:4px;font-size:9px;font-weight:700}
+.detail-desc{font-size:11px;color:#666;line-height:1.7;margin:14px 0 20px}.option-label{font-size:11px;font-weight:600;margin:17px 0 9px}.option-label span{font-weight:400;color:#777}.big-swatches .swatch{width:22px;height:22px}.size-selector{display:flex;gap:7px}.size-selector .size-btn{width:40px;height:38px;font-size:11px}
+.purchase-row{display:flex;gap:9px;margin:20px 0 12px}.qty{display:flex;align-items:center;border:1px solid #ddd;border-radius:5px;height:43px}.qty button{background:transparent;border:0;width:31px;height:100%}.qty span{font-size:12px;min-width:20px;text-align:center}.add-button,.red-button{background:#d7282f;color:#fff;border:0;border-radius:6px;padding:13px 18px;font-size:11px;font-weight:600}.purchase-row .add-button{flex:1}
+.wishlist-action{border:0;background:transparent;padding:7px 0;display:flex;align-items:center;gap:7px;font-size:11px}
+.feature-strip{border:1px solid #e7e2dc;border-radius:10px;padding:16px 10px;display:grid;grid-template-columns:repeat(4,1fr);margin:12px auto 32px}
+.feature-strip .feature{justify-content:center;font-size:9px}
+.tabs-detail{display:flex;border-bottom:1px solid #ddd;gap:27px}.tabs-detail button{border:0;background:none;padding:12px 0;font-size:11px;color:#68635e}.tabs-detail button.active{color:#d7282f;border-bottom:2px solid #d7282f}
+.tab-content{padding:20px 0 54px;min-height:140px;font-size:11px;color:#555;line-height:1.8}.tab-content ul{padding-left:17px}.size-table{border-collapse:collapse;width:100%;max-width:580px}.size-table td,.size-table th{border:1px solid #ddd;padding:9px;text-align:left}
+.cart-layout{display:grid;grid-template-columns:1.65fr .85fr;gap:28px;padding-bottom:64px}.cart-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.cart-heading h1{font-size:26px;margin:0}.cart-heading h1 span{font-size:13px;font-weight:400;color:#777}.text-link{border:0;background:none;text-decoration:underline;font-size:10px}
+.cart-item{background:#fff;border:1px solid #eee;border-radius:10px;display:grid;grid-template-columns:22px 90px 1fr auto;gap:14px;align-items:center;padding:12px;margin-bottom:10px;position:relative}.cart-item>input{accent-color:#111}.cart-thumb{background:#f2f2f2;height:83px;width:85px;border-radius:6px}.cart-thumb img{width:100%;height:100%;object-fit:contain}.cart-info h3{font-size:12px;margin:0 0 5px}.cart-info p{font-size:10px;color:#777;margin:0 0 9px}.cart-price{font-size:13px;font-weight:700;white-space:nowrap}.cart-price del{font-size:10px;color:#888;font-weight:400;margin-right:5px}.trash{border:0;background:transparent;position:absolute;right:10px;top:8px;color:#777}
+.coupon{display:flex;gap:8px;margin:21px 0}.coupon input{height:39px;flex:1;border:1px solid #ddd;border-radius:5px;padding:0 12px;font-size:10px}.coupon button{border:0;background:#111;color:#fff;border-radius:5px;padding:0 24px;font-size:10px}.notice{font-size:10px;color:#d7282f;margin:-12px 0 15px}
+.summary{background:#fff;border:1px solid #eee;border-radius:12px;padding:20px;height:max-content;position:sticky;top:90px}.summary h2{font-size:16px;margin:0 0 18px}.summary-line{display:flex;justify-content:space-between;font-size:11px;margin:12px 0;color:#555}.summary-line strong{color:#111}.summary-line .green{color:#328550}.summary-line .red{color:#d7282f}.summary-total{border-top:1px solid #eee;padding-top:16px;margin-top:16px;font-size:15px;font-weight:700;color:#111}.summary .red-button{width:100%;margin-top:9px}
+.trust-row{display:flex;justify-content:space-between;padding:23px 0;gap:12px}.trust-row .feature{font-size:9px}
+.checkout{display:grid;grid-template-columns:1.35fr .8fr;gap:55px;padding-bottom:60px}.steps{font-size:10px;color:#888;margin-bottom:28px}.steps strong{color:#111}.checkout h1{font-size:20px;margin:0 0 19px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.field{border:1px solid #ddd;border-radius:6px;background:white;padding:7px 11px}.field.full{grid-column:1/-1}.field label{display:block;font-size:8px;color:#777;margin-bottom:3px}.field input,.field select{width:100%;border:0;outline:0;font-size:11px;color:#222;background:transparent}
+.address-check{font-size:10px;display:flex;align-items:center;gap:7px;margin:15px 0}.address-check input{accent-color:#111}.checkout .summary{position:static}.summary-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f1f1}.summary-item img{width:42px;height:44px;object-fit:contain;background:#f2f2f2;border-radius:4px}.summary-item span{font-size:9px;flex:1}.summary-item b{font-size:10px}
+.payment-options{margin-top:20px}.payment-options h3{font-size:12px;margin-bottom:10px}.payment-choice{display:flex;align-items:center;justify-content:space-between;border:1px solid #e6e6e6;padding:11px;border-radius:6px;margin:7px 0;font-size:10px}.payment-choice label{display:flex;align-items:center;gap:7px}.payment-choice input{accent-color:#111}
+.customizer{display:grid;grid-template-columns:190px 1fr 240px;gap:20px;padding:28px 0 65px}.panel{background:#fff;border:1px solid #eee;border-radius:12px;padding:18px}.panel h2{font-size:15px;margin:0 0 17px}.tool-button{display:flex;width:100%;align-items:center;gap:10px;padding:12px 8px;border:0;background:white;border-bottom:1px solid #eee;text-align:left;font-size:11px}.tool-button.active{color:#d7282f}.canvas{min-height:490px;background:#f1f1f1;border-radius:12px;display:grid;place-items:center;position:relative}.canvas img{width:75%;height:84%;object-fit:contain}.design-overlay{position:absolute;top:43%;font-family:var(--app-font-serif);font-size:23px;font-weight:700;color:#d7282f}.canvas-tools{position:absolute;bottom:14px;background:#fff;border-radius:6px;padding:8px 12px;font-size:10px;color:#777}
+.mobile-filter{display:none}
+.toast{position:fixed;z-index:100;bottom:26px;left:50%;transform:translateX(-50%);background:#171717;color:#fff;border-radius:7px;padding:13px 22px;font-size:12px;box-shadow:0 8px 24px #0002}
+.upload-overlay{position:absolute!important;width:19%!important;height:25%!important;object-fit:contain!important;top:36%;left:40%;mix-blend-mode:multiply}
+.graphics-tools{display:flex;gap:5px}.graphics-tools button{border:0;background:#f7f3ed;border-radius:4px;padding:6px 8px;font-size:8px}
+@media(max-width:900px){.navlinks{gap:12px;font-size:10px}.nav-actions{gap:10px}.product-visual{height:190px}.custom-banner{grid-template-columns:1fr 1fr .6fr;padding:22px}.detail{grid-template-columns:48px 1fr 1fr}.detail-image{height:410px}}
+@media(max-width:700px){.container{width:min(100% - 30px,500px)}.topbar{height:62px}.brand{width:108px}.mobile-toggle{display:grid;background:none;border:0;padding:5px}.navlinks{display:none;position:absolute;top:61px;left:0;right:0;background:#fff;padding:15px;box-shadow:0 10px 20px #0001;flex-direction:column;align-items:flex-start}.navlinks.open{display:flex}.nav-inner{gap:10px}.hero-layout{grid-template-columns:1fr;min-height:unset;padding-top:20px}.hero-copy{padding:24px 0 0}.hero h1{font-size:62px;margin:18px 0}.hero-image{height:300px}.handwritten{top:20px;right:6%}.features{gap:13px;flex-wrap:wrap;margin:21px 0}.feature{font-size:8px}.categories{grid-template-columns:repeat(2,1fr);gap:9px;padding:18px 0 36px}.category-card{height:125px;padding:13px}.category-card h3{font-size:14px}.section-heading{display:block}.section-heading h2{margin-bottom:14px}.tabs{overflow:auto;flex-wrap:nowrap;padding-bottom:4px}.tab{white-space:nowrap}.view-all{display:inline-block;margin-top:12px}.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.product-visual{height:180px}.product-meta{padding:10px}.product-title{font-size:10px}.custom-banner{grid-template-columns:1fr 1fr;padding:20px;gap:0}.banner-copy h2{font-size:38px}.banner-shirt{height:210px}.tool-list{grid-column:1/-1;grid-template-columns:repeat(3,1fr);margin-top:7px;padding:11px}.tool-list div{font-size:9px}.footer-inner{grid-template-columns:1fr 1fr}.footer-brand{grid-column:1/-1}.listing{grid-template-columns:1fr;gap:17px}.filters{display:none}.filters.show{display:block}.mobile-filter{display:inline-flex;border:1px solid #ddd;border-radius:5px;padding:8px 12px;background:#fff;font-size:10px}.list-head{align-items:flex-start;gap:10px}.list-head h1{font-size:22px}.list-head p{max-width:220px;line-height:1.5}.sort{font-size:0}.sort select{font-size:10px}.listing-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.detail{grid-template-columns:1fr;gap:10px}.thumbs{order:2;flex-direction:row}.thumb{width:55px;height:58px}.detail-image{order:1;height:360px}.detail-info{order:3}.feature-strip{grid-template-columns:repeat(2,1fr);gap:16px}.tabs-detail{gap:13px;overflow:auto}.tabs-detail button{white-space:nowrap;font-size:10px}.cart-layout{grid-template-columns:1fr;gap:15px}.cart-item{grid-template-columns:16px 70px 1fr auto;gap:8px;padding:9px}.cart-thumb{width:68px;height:73px}.cart-info h3{font-size:10px;padding-right:14px}.cart-price{font-size:11px}.summary{position:static}.trust-row{flex-wrap:wrap}.checkout{grid-template-columns:1fr;gap:22px}.checkout .summary{order:2}.customizer{grid-template-columns:1fr;gap:12px}.tool-panel{display:grid;grid-template-columns:repeat(3,1fr)}.tool-panel h2{grid-column:1/-1}.tool-button{border:1px solid #eee;border-radius:5px;justify-content:center;flex-direction:column;gap:5px;font-size:9px;padding:10px 4px}.canvas{min-height:360px}.options-panel{order:3}.crumb{padding:13px 0}.detail-info h1{font-size:22px}}
+
+/**
+ * Using the elevate system.
+ * Automatic contrast adjustment.
+ *
+ * <element className="hover-elevate" />
+ * <element className="active-elevate-2" />
+ *
+ * // Using the tailwind utility when a data attribute is "on"
+ * <element className="toggle-elevate data-[state=on]:toggle-elevated" />
+ * // Or manually controlling the toggle state
+ * <element className="toggle-elevate toggle-elevated" />
+ *
+ * Elevation systems have to handle many states.
+ * - not-hovered, vs. hovered vs. active  (three mutually exclusive states)
+ * - toggled or not
+ * - focused or not (this is not handled with these utilities)
+ *
+ * Even without handling focused or not, this is six possible combinations that
+ * need to be distinguished from eachother visually.
+ */
+/* Specific page refinements */
+.brand{width:90px}
+.brand img{max-height:68px;object-fit:contain}
+.footer-logo{width:118px}
+.steps{display:flex;align-items:center;gap:7px}
+.form-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+.field.half{grid-column:span 3}
+.form-grid>.field:nth-last-child(-n+3){grid-column:span 2}
+.field-error{display:block;color:#d7282f;font-size:9px;margin-top:3px}
+.tab-description{display:grid;grid-template-columns:1fr minmax(220px,34%);gap:28px;align-items:start}
+.tab-description img{width:100%;height:165px;object-fit:cover;border-radius:10px}
+.cart-price del{font-size:10px;color:#888;font-weight:400;margin-right:5px}
+.cart-price .discount{font-size:8px;padding:3px 5px}
+.filter-backdrop{display:none}
+@media(max-width:700px){
+  .brand{width:78px}
+  .filters{display:block;position:fixed;top:62px;left:0;width:min(88vw,340px);height:calc(100dvh - 62px);overflow:auto;z-index:70;transform:translateX(-105%);transition:transform .25s;box-shadow:0 10px 30px #0002}
+  .filters.show{transform:translateX(0)}
+  .filter-backdrop{display:block;position:fixed;inset:62px 0 0;background:#0005;border:0;z-index:65}
+  .form-grid{grid-template-columns:1fr}
+  .field.half{grid-column:1/-1}
+  .form-grid>.field:nth-last-child(-n+3){grid-column:1/-1}
+  .tab-description{grid-template-columns:1fr}
+  .tab-description img{height:180px}
+}
+
+@layer utilities {
+  /* Hide ugly search cancel button in Chrome until we can style it properly */
+  input[type='search']::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  /* Placeholder styling for contentEditable div */
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
+   * buttons/badges can remove the automatic brightness adjustment on interactions
+   * and program their own. */
+  .no-default-hover-elevate {
+  }
+
+  .no-default-active-elevate {
+  }
+
+  /**
+   * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
+   * This way they can stack/compound. Both will overlap the parent's borders!
+   * So borders will be automatically adjusted both on toggle, and hover/active,
+   * and they will be compounded.
+   */
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    /*border-radius: inherit;   match rounded corners */
+    border-radius: inherit;
+    z-index: -1;
+    /* sits behind content but above backdrop */
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  /* Does not work on elements with overflow:hidden! */
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    /*border-radius: inherit;   match rounded corners */
+    border-radius: inherit;
+    z-index: 999;
+    /* sits in front of content */
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+    inset: -1px;
+  }
+}

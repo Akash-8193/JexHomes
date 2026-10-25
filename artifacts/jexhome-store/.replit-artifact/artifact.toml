@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "JexHome Store"
+description = "A responsive JexHome custom apparel and home decor storefront for Indian shoppers, with category browsing, product details, cart, checkout, wishlist, and custom print design."
+version = "1.0.0"
+id = "artifacts/jexhome-store"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19252
+
+[services.development]
+run = "pnpm --filter @workspace/jexhome-store run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jexhome-store", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/jexhome-store/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19252"
+BASE_PATH = "/"
