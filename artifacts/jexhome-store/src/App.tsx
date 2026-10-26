@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link, Route, Switch, useLocation, useParams, useSearch } from 'wouter';
 import {
   Heart, Search, UserRound, ShoppingBag, ShoppingCart, Menu, X,
   ShieldCheck, Sparkles, Truck, Globe2, ArrowRight, Upload, Type,
   Shapes, Palette, Box, Trash2, Plus, Minus, Play, PackageCheck,
   RotateCcw, Leaf, SlidersHorizontal, ChevronRight, Instagram,
-  Facebook, Youtube, CheckCircle2, Star, CreditCard, Smartphone, Check,
+  Facebook, Youtube, CheckCircle2, Star, CreditCard, Smartphone, Check, ChevronLeft,
   Eye, Repeat2, ListFilter, Headphones, CalendarDays
 } from 'lucide-react';
 import { Form } from '@/components/ui/form';
@@ -14,7 +14,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { products as baseProducts, type Product } from './data/products';
 import type { BlogPost } from './data/content';
-import { useCatalog } from './lib/catalog';
+import { useCatalog, type OrderStatus } from './lib/catalog';
+import { useAccount, useCurrentUser, type Profile } from './lib/account';
 import AdminPage from './pages/Admin';
 import { store, useStore, type CartItem } from './lib/store';
 
@@ -143,21 +144,84 @@ function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   );
 }
 
+const initials = (name: string) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+
+const formatAddress = (p: Profile) =>
+  [[p.address, p.apartment].filter(Boolean).join(', '), [p.city, p.pincode].filter(Boolean).join(', '), p.state]
+    .filter(Boolean);
+
+function useMyOrders(email?: string) {
+  const orders = useCatalog(s => s.orders);
+  return useMemo(
+    () => email ? orders.filter(o => o.customer.email.trim().toLowerCase() === email) : [],
+    [orders, email],
+  );
+}
+
+const orderStatusColors: Record<OrderStatus, [string, string]> = {
+  Pending: ['#fff6e5', '#b7791f'],
+  Processing: ['#eaf2fd', '#245f9c'],
+  Shipped: ['#eaf7ee', '#28a745'],
+  Delivered: ['#eaf7ee', '#1e7b34'],
+  Cancelled: ['#fdecec', '#d7282f'],
+};
+
+function OrderStatusBadge({ status }: { status: OrderStatus }) {
+  const [background, color] = orderStatusColors[status];
+  return <span className="order-badge" style={{ background, color }}>{status}</span>;
+}
+
 function AccountModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const state = useStore();
   const [, navigate] = useLocation();
+  const user = useCurrentUser();
+  const myOrders = useMyOrders(user?.email);
 
   if (!open) return null;
+
+  const go = (path: string) => {
+    onClose();
+    navigate(path);
+  };
+
+  if (!user) {
+    return (
+      <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+        <div className="modal-window" onClick={e => e.stopPropagation()}>
+          <button className="modal-close" onClick={onClose} aria-label="Close account"><X size={16} /></button>
+          <div className="account-profile-header">
+            <div className="account-avatar"><UserRound size={22} /></div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16 }}>Welcome to JexHome</h3>
+              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#777' }}>Log in to track orders and save your address.</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+            <button className="pill pill-dark" style={{ flex: 1, justifyContent: 'center' }} onClick={() => go('/login')} data-testid="button-modal-login">
+              Log In
+            </button>
+            <button className="pill pill-outline" style={{ flex: 1, justifyContent: 'center', borderColor: '#ddd' }} onClick={() => go('/login?mode=signup')} data-testid="button-modal-signup">
+              Create Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const recent = myOrders[0];
+  const address = formatAddress(user);
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
       <div className="modal-window" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close account"><X size={16} /></button>
         <div className="account-profile-header">
-          <div className="account-avatar">AK</div>
+          <div className="account-avatar">{initials(user.fullName)}</div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16 }}>Akash Kumar</h3>
-            <p style={{ margin: '2px 0 0', fontSize: 11, color: '#777' }}>akash@example.com · +91 95993 42525</p>
+            <h3 style={{ margin: 0, fontSize: 16 }}>{user.fullName}</h3>
+            <p style={{ margin: '2px 0 0', fontSize: 11, color: '#777' }}>{user.email}{user.phone && ` · +91 ${user.phone}`}</p>
           </div>
         </div>
 
@@ -173,44 +237,62 @@ function AccountModal({ open, onClose }: { open: boolean; onClose: () => void })
         </div>
 
         <h4 style={{ margin: '0 0 8px', fontSize: 12, textTransform: 'uppercase', color: '#888', letterSpacing: '0.05em' }}>Recent Order</h4>
-        <div className="account-order-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <strong style={{ fontSize: 12 }}>Order #JH-9821</strong>
-            <span style={{ fontSize: 9, background: '#eaf7ee', color: '#28a745', padding: '3px 8px', borderRadius: 12, fontWeight: 600 }}>In Transit</span>
+        {recent ? (
+          <div className="account-order-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong style={{ fontSize: 12 }}>Order {recent.id}</strong>
+              <OrderStatusBadge status={recent.status} />
+            </div>
+            <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>
+              {recent.items.map(i => `${i.name} (${i.color} / ${i.size})`).join(', ')}
+            </div>
+            <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
+              Placed {new Date(recent.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · {currency(recent.total)}
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>Good Vibes Oversized T-Shirt (Off White / L)</div>
-          <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>Expected delivery: Within 2 days via BlueDart Express</div>
-        </div>
+        ) : (
+          <div className="account-order-card" style={{ fontSize: 11, color: '#777' }}>No orders yet.</div>
+        )}
 
         <h4 style={{ margin: '16px 0 8px', fontSize: 12, textTransform: 'uppercase', color: '#888', letterSpacing: '0.05em' }}>Default Address</h4>
         <div style={{ fontSize: 11, color: '#555', background: '#faf9f7', padding: 12, borderRadius: 8, border: '1px solid #eee' }}>
-          <strong>Akash Kumar</strong><br />
-          123, Sector 15, Near Metro Station<br />
-          Delhi, 110015 — India
+          {address.length ? (
+            <>
+              <strong>{user.fullName}</strong><br />
+              {address.map(line => <span key={line}>{line}<br /></span>)}
+              India
+            </>
+          ) : 'No address saved yet. Add one from Edit Profile.'}
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <button
             className="pill pill-dark"
             style={{ flex: 1, justifyContent: 'center' }}
-            onClick={() => {
-              onClose();
-              navigate('/cart');
-            }}
+            onClick={() => go('/cart')}
           >
             View Cart
           </button>
           <button
             className="pill pill-outline"
             style={{ flex: 1, justifyContent: 'center', borderColor: '#ddd' }}
-            onClick={() => {
-              notify('Profile preferences updated.');
-              onClose();
-            }}
+            onClick={() => go('/account')}
+            data-testid="button-edit-profile"
           >
             Edit Profile
           </button>
         </div>
+        <button
+          className="account-logout"
+          onClick={() => {
+            useAccount.getState().logOut();
+            onClose();
+            notify('You have been logged out.');
+          }}
+          data-testid="button-logout"
+        >
+          Log Out
+        </button>
       </div>
     </div>
   );
@@ -713,19 +795,23 @@ function Home() {
 
       <section className="goals container" aria-labelledby="goals-title">
         <span className="best-seller-pill">FASHION BY GOAL</span>
-        <h2 id="goals-title">Style choices for every goal</h2>
+        <h2 id="goals-title">Style choices for <span className="goals-accent">every goal</span></h2>
         <p className="goals-lead">
           Discover JexHome pieces made for every part of your day—office, weekends, travel or a cosy home makeover, find styles that fit every moment.
         </p>
         <div className="goals-row">
           {[
-            { Icon: Box, title: 'Free Shipping', text: 'Enjoy fast and reliable free shipping on orders above ₹499.' },
-            { Icon: CreditCard, title: 'Secure Payments', text: 'Your payments are fully encrypted for a safe, smooth checkout.' },
-            { Icon: Truck, title: 'Easy Returns', text: '7-day easy returns and quick size exchanges with doorstep pickup.' },
-            { Icon: Headphones, title: '24/7 Support', text: 'Our friendly support team is here to help you anytime.' }
-          ].map(({ Icon, title, text }) => (
-            <div className="goal" key={title}>
-              <span className="goal-icon"><Icon size={34} strokeWidth={1.5} /></span>
+            { Icon: Box, stat: '₹499+', title: 'Free Shipping', text: 'Enjoy fast and reliable free shipping on orders above ₹499.', tint: '#fff1ec' },
+            { Icon: CreditCard, stat: '100%', title: 'Secure Payments', text: 'Your payments are fully encrypted for a safe, smooth checkout.', tint: '#eef6f1' },
+            { Icon: Truck, stat: '7 Days', title: 'Easy Returns', text: '7-day easy returns and quick size exchanges with doorstep pickup.', tint: '#f1effa' },
+            { Icon: Headphones, stat: '24/7', title: '24/7 Support', text: 'Our friendly support team is here to help you anytime.', tint: '#eef4fb' }
+          ].map(({ Icon, stat, title, text, tint }, i) => (
+            <div className="goal" key={title} style={{ '--goal-tint': tint } as CSSProperties}>
+              <span className="goal-num">0{i + 1}</span>
+              <div className="goal-top">
+                <span className="goal-icon"><Icon size={28} strokeWidth={1.6} /></span>
+                <span className="goal-stat">{stat}</span>
+              </div>
               <h3>{title}</h3>
               <p>{text}</p>
             </div>
@@ -1351,9 +1437,23 @@ function ProductDetailView({ slug }: { slug: string }) {
     ];
   }, [product]);
 
+  const showNext = () => setThumb(prev => (prev >= gallery.length ? 1 : prev + 1));
+  const showPrev = () => setThumb(prev => (prev <= 1 ? gallery.length : prev - 1));
+
   const handleRotate = () => {
-    setThumb(prev => (prev >= gallery.length ? 1 : prev + 1));
+    showNext();
     if (!isPhoto) notify('Rotated 360° view angle');
+  };
+
+  // Horizontal swipe on the main image flips through the gallery, like most store apps.
+  const [touchX, setTouchX] = useState<number | null>(null);
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    setTouchX(null);
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) showNext();
+    else showPrev();
   };
 
   const handleReviewSubmit = (e: React.FormEvent) => {
@@ -1413,8 +1513,26 @@ function ProductDetailView({ slug }: { slug: string }) {
             ))}
           </div>
 
-          <div className="detail-image">
-            <img src={gallery[thumb - 1] ?? product.image} alt={product.name} />
+          <div
+            className="detail-image"
+            onTouchStart={e => setTouchX(e.touches[0].clientX)}
+            onTouchEnd={onTouchEnd}
+            onKeyDown={e => {
+              if (e.key === 'ArrowLeft') showPrev();
+              if (e.key === 'ArrowRight') showNext();
+            }}
+          >
+            <img src={gallery[thumb - 1] ?? product.image} alt={`${product.name} view ${thumb} of ${gallery.length}`} draggable={false} />
+            {gallery.length > 1 && (
+              <>
+                <button className="gallery-arrow prev" onClick={showPrev} aria-label="Previous image" data-testid="button-gallery-prev">
+                  <ChevronLeft size={20} />
+                </button>
+                <button className="gallery-arrow next" onClick={showNext} aria-label="Next image" data-testid="button-gallery-next">
+                  <ChevronRight size={20} />
+                </button>
+              </>
+            )}
             <button
               className={`heart ${wished ? 'selected' : ''}`}
               onClick={() => {
@@ -1437,7 +1555,7 @@ function ProductDetailView({ slug }: { slug: string }) {
                 cursor: 'pointer'
               }}
             >
-              {isPhoto ? `${thumb} / ${gallery.length} · Next view` : <>360° &nbsp; Click to rotate angle</>}
+              {isPhoto ? `${thumb} / ${gallery.length}` : <>360° &nbsp; Click to rotate angle</>}
             </button>
           </div>
 
@@ -1989,18 +2107,21 @@ function Checkout({ onOrderPlaced }: { onOrderPlaced: (order: { id: string; tota
   const [cardExpiry, setCardExpiry] = useState('12/28');
   const [cardCvv, setCardCvv] = useState('883');
   const [step, setStep] = useState<'info' | 'payment'>('info');
+  const [saveAddress, setSaveAddress] = useState(true);
+  const user = useCurrentUser();
 
+  // Logged-in shoppers start from their saved profile; guests get an empty form.
   const checkoutForm = useForm<CheckoutFields>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      fullName: 'Akash Kumar',
-      phone: '9599342525',
-      email: 'akash@example.com',
-      address: '123, Sector 15',
-      apartment: 'Near Metro Station',
-      state: 'New Delhi',
-      city: 'Delhi',
-      pincode: '110015'
+      fullName: user?.fullName ?? '',
+      phone: user?.phone ?? '',
+      email: user?.email ?? '',
+      address: user?.address ?? '',
+      apartment: user?.apartment ?? '',
+      state: user?.state || 'New Delhi',
+      city: user?.city || 'Delhi',
+      pincode: user?.pincode ?? ''
     }
   });
 
@@ -2032,6 +2153,10 @@ function Checkout({ onOrderPlaced }: { onOrderPlaced: (order: { id: string; tota
       subtotal,
       total,
     });
+    if (user && saveAddress) {
+      const { address, apartment, city, state: region, pincode } = checkoutForm.getValues();
+      useAccount.getState().updateProfile({ ...user, address, apartment, city, state: region, pincode });
+    }
     onOrderPlaced({ id: orderId, total, count: totalCount });
     store.clear();
   };
@@ -2155,8 +2280,8 @@ function Checkout({ onOrderPlaced }: { onOrderPlaced: (order: { id: string; tota
               </div>
 
               <label className="address-check">
-                <input type="checkbox" defaultChecked data-testid="checkbox-save-address" />
-                Save this address for next time
+                <input type="checkbox" checked={saveAddress} onChange={e => setSaveAddress(e.target.checked)} data-testid="checkbox-save-address" />
+                {user ? 'Save this address to my account' : <span>Save this address — <Link href="/login?next=/checkout" style={{ color: '#d7282f' }}>log in</Link> to keep it</span>}
               </label>
 
               {step === 'info' ? (
@@ -2594,6 +2719,263 @@ function Wishlist() {
   );
 }
 
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(1, 'Enter your password'),
+});
+const signupSchema = z.object({
+  fullName: z.string().trim().min(1, 'Enter your full name'),
+  email: z.string().email('Enter a valid email address'),
+  phone: z.string().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
+  password: z.string().min(6, 'Use at least 6 characters'),
+  confirm: z.string(),
+}).refine(v => v.password === v.confirm, { message: 'Passwords do not match', path: ['confirm'] });
+type LoginFields = z.infer<typeof loginSchema>;
+type SignupFields = z.infer<typeof signupSchema>;
+
+function LoginPage() {
+  const search = new URLSearchParams(useSearch());
+  const [, navigate] = useLocation();
+  const user = useCurrentUser();
+  const [mode, setMode] = useState<'login' | 'signup'>(search.get('mode') === 'signup' ? 'signup' : 'login');
+  const [error, setError] = useState('');
+  // Only follow same-site paths, so a crafted ?next= link can't send people elsewhere.
+  const next = search.get('next')?.startsWith('/') && !search.get('next')?.startsWith('//') ? search.get('next')! : '/account';
+
+  const loginForm = useForm<LoginFields>({ resolver: zodResolver(loginSchema), defaultValues: { email: '', password: '' } });
+  const signupForm = useForm<SignupFields>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { fullName: '', email: '', phone: '', password: '', confirm: '' },
+  });
+
+  useEffect(() => {
+    if (user) navigate(next, { replace: true });
+  }, [user]);
+
+  const switchMode = (m: 'login' | 'signup') => {
+    setMode(m);
+    setError('');
+  };
+
+  const onLogin = loginForm.handleSubmit(async ({ email, password }) => {
+    const err = await useAccount.getState().logIn(email, password);
+    if (err) return setError(err);
+    notify('Welcome back!');
+  });
+
+  const onSignup = signupForm.handleSubmit(async ({ fullName, email, phone, password }) => {
+    const err = await useAccount.getState().signUp({ fullName, email, phone }, password);
+    if (err) return setError(err);
+    notify('Account created. Welcome to JexHome!');
+  });
+
+  const fieldError = (msg?: string) => msg && <small className="field-error">{msg}</small>;
+
+  return (
+    <main className="container auth-page">
+      <section className="auth-card">
+        <div className="auth-tabs" role="tablist">
+          <button role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'active' : ''} onClick={() => switchMode('login')} data-testid="tab-login">
+            Log In
+          </button>
+          <button role="tab" aria-selected={mode === 'signup'} className={mode === 'signup' ? 'active' : ''} onClick={() => switchMode('signup')} data-testid="tab-signup">
+            Create Account
+          </button>
+        </div>
+
+        <h1>{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
+        <p className="auth-sub">
+          {mode === 'login' ? 'Log in to see your orders and saved address.' : 'Save your address and track every order in one place.'}
+        </p>
+
+        {error && <div className="auth-error" role="alert">{error}</div>}
+
+        {mode === 'login' ? (
+          <form onSubmit={onLogin} noValidate className="auth-form" data-testid="form-login">
+            <div className="field">
+              <label htmlFor="login-email">Email Address</label>
+              <input id="login-email" type="email" autoComplete="email" placeholder="you@example.com" {...loginForm.register('email')} data-testid="input-login-email" />
+              {fieldError(loginForm.formState.errors.email?.message)}
+            </div>
+            <div className="field">
+              <label htmlFor="login-password">Password</label>
+              <input id="login-password" type="password" autoComplete="current-password" placeholder="••••••" {...loginForm.register('password')} data-testid="input-login-password" />
+              {fieldError(loginForm.formState.errors.password?.message)}
+            </div>
+            <button className="red-button" type="submit" disabled={loginForm.formState.isSubmitting} data-testid="button-login">
+              Log In
+            </button>
+            <p className="auth-switch">New to JexHome? <button type="button" onClick={() => switchMode('signup')}>Create an account</button></p>
+          </form>
+        ) : (
+          <form onSubmit={onSignup} noValidate className="auth-form" data-testid="form-signup">
+            <div className="field">
+              <label htmlFor="signup-name">Full Name</label>
+              <input id="signup-name" autoComplete="name" placeholder="Your name" {...signupForm.register('fullName')} data-testid="input-signup-name" />
+              {fieldError(signupForm.formState.errors.fullName?.message)}
+            </div>
+            <div className="field">
+              <label htmlFor="signup-email">Email Address</label>
+              <input id="signup-email" type="email" autoComplete="email" placeholder="you@example.com" {...signupForm.register('email')} data-testid="input-signup-email" />
+              {fieldError(signupForm.formState.errors.email?.message)}
+            </div>
+            <div className="field">
+              <label htmlFor="signup-phone">Phone Number</label>
+              <input id="signup-phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="10-digit mobile number" {...signupForm.register('phone')} data-testid="input-signup-phone" />
+              {fieldError(signupForm.formState.errors.phone?.message)}
+            </div>
+            <div className="field">
+              <label htmlFor="signup-password">Password</label>
+              <input id="signup-password" type="password" autoComplete="new-password" placeholder="At least 6 characters" {...signupForm.register('password')} data-testid="input-signup-password" />
+              {fieldError(signupForm.formState.errors.password?.message)}
+            </div>
+            <div className="field">
+              <label htmlFor="signup-confirm">Confirm Password</label>
+              <input id="signup-confirm" type="password" autoComplete="new-password" placeholder="Re-enter password" {...signupForm.register('confirm')} data-testid="input-signup-confirm" />
+              {fieldError(signupForm.formState.errors.confirm?.message)}
+            </div>
+            <button className="red-button" type="submit" disabled={signupForm.formState.isSubmitting} data-testid="button-signup">
+              Create Account
+            </button>
+            <p className="auth-switch">Already have an account? <button type="button" onClick={() => switchMode('login')}>Log in</button></p>
+          </form>
+        )}
+      </section>
+    </main>
+  );
+}
+
+const profileSchema = checkoutSchema.extend({
+  fullName: z.string().trim().min(1, 'Enter your full name'),
+  phone: z.string().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
+  address: z.string(),
+  state: z.string(),
+  city: z.string(),
+  pincode: z.string().regex(/^(\d{6})?$/, 'Enter a 6-digit pincode'),
+});
+
+function AccountPage() {
+  const user = useCurrentUser();
+  const [, navigate] = useLocation();
+  const myOrders = useMyOrders(user?.email);
+  const form = useForm<Profile>({
+    resolver: zodResolver(profileSchema),
+    values: user ?? undefined,
+  });
+
+  useEffect(() => {
+    if (!user) navigate('/login?next=/account', { replace: true });
+  }, [user]);
+
+  if (!user) return null;
+
+  const onSave = form.handleSubmit(profile => {
+    const err = useAccount.getState().updateProfile(profile);
+    if (err) return form.setError('email', { message: err });
+    notify('Profile updated.');
+  });
+
+  const fieldError = (name: keyof Profile) =>
+    form.formState.errors[name] && <small className="field-error">{form.formState.errors[name]?.message}</small>;
+
+  return (
+    <main className="container account-page">
+      <div className="account-page-head">
+        <div className="account-profile-header" style={{ margin: 0, border: 0, padding: 0 }}>
+          <div className="account-avatar">{initials(user.fullName)}</div>
+          <div>
+            <h1>{user.fullName}</h1>
+            <p>{user.email}</p>
+          </div>
+        </div>
+        <button
+          className="pill pill-outline"
+          onClick={() => {
+            // Leave first, otherwise the page's own guard bounces to /login.
+            navigate('/');
+            useAccount.getState().logOut();
+            notify('You have been logged out.');
+          }}
+          data-testid="button-account-logout"
+        >
+          Log Out
+        </button>
+      </div>
+
+      <div className="account-grid">
+        <section className="account-panel">
+          <h2>Edit Profile</h2>
+          <form onSubmit={onSave} noValidate data-testid="form-profile">
+            <div className="form-grid">
+              <div className="field full">
+                <label htmlFor="profile-name">Full Name</label>
+                <input id="profile-name" autoComplete="name" {...form.register('fullName')} data-testid="input-profile-name" />
+                {fieldError('fullName')}
+              </div>
+              <div className="field half">
+                <label htmlFor="profile-phone">Phone Number</label>
+                <input id="profile-phone" type="tel" inputMode="numeric" {...form.register('phone')} data-testid="input-profile-phone" />
+                {fieldError('phone')}
+              </div>
+              <div className="field half">
+                <label htmlFor="profile-email">Email Address</label>
+                <input id="profile-email" type="email" {...form.register('email')} data-testid="input-profile-email" />
+                {fieldError('email')}
+              </div>
+              <div className="field full">
+                <label htmlFor="profile-address">Address</label>
+                <input id="profile-address" placeholder="House no., street, area" {...form.register('address')} data-testid="input-profile-address" />
+              </div>
+              <div className="field full">
+                <label htmlFor="profile-apartment">Apartment, suite, etc. (optional)</label>
+                <input id="profile-apartment" {...form.register('apartment')} data-testid="input-profile-apartment" />
+              </div>
+              <div className="field">
+                <label htmlFor="profile-state">State</label>
+                <input id="profile-state" {...form.register('state')} data-testid="input-profile-state" />
+              </div>
+              <div className="field">
+                <label htmlFor="profile-city">City</label>
+                <input id="profile-city" {...form.register('city')} data-testid="input-profile-city" />
+              </div>
+              <div className="field">
+                <label htmlFor="profile-pincode">Pincode</label>
+                <input id="profile-pincode" inputMode="numeric" {...form.register('pincode')} data-testid="input-profile-pincode" />
+                {fieldError('pincode')}
+              </div>
+            </div>
+            <button className="red-button" type="submit" style={{ marginTop: 16 }} data-testid="button-save-profile">
+              Save Changes
+            </button>
+          </form>
+        </section>
+
+        <section className="account-panel">
+          <h2>My Orders</h2>
+          {myOrders.length ? myOrders.map(o => (
+            <div className="account-order-card" key={o.id} style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontSize: 12 }}>Order {o.id}</strong>
+                <OrderStatusBadge status={o.status} />
+              </div>
+              <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>
+                {o.items.map(i => `${i.name} × ${i.quantity}`).join(', ')}
+              </div>
+              <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>
+                {new Date(o.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} · {o.payment} · {currency(o.total)}
+              </div>
+            </div>
+          )) : (
+            <p style={{ fontSize: 12, color: '#777' }}>
+              No orders yet. <Link href="/shop" style={{ color: '#d7282f' }}>Start shopping →</Link>
+            </p>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
+
 function NotFound() {
   return (
     <main className="container empty" style={{ margin: '60px auto' }}>
@@ -2679,6 +3061,8 @@ function App() {
         </Route>
         <Route path="/custom-print" component={CustomPrint} />
         <Route path="/wishlist" component={Wishlist} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/account" component={AccountPage} />
         <Route component={NotFound} />
       </Switch>
 

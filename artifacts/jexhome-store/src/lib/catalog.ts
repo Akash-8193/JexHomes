@@ -90,5 +90,11 @@ export const useCatalog = create<CatalogState>()(persist((set) => ({
   resetContent: () => set(defaults()),
 }), { name: 'jexhome-catalog', version: 1, storage: safeStorage }));
 
+// An order placed in another tab must reach an already-open admin tab; otherwise that tab's
+// next save writes its stale copy back and wipes the new order.
+window.addEventListener('storage', e => {
+  if (e.key === 'jexhome-catalog') useCatalog.persist.rehydrate();
+});
+
 export const slugify = (text: string) =>
   text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

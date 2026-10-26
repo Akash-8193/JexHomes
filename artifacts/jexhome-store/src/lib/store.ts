@@ -35,6 +35,11 @@ export const useStore = create<StoreState>()(persist((set) => ({
   toggleWish: id => set(state => ({ wishlist: state.wishlist.includes(id) ? state.wishlist.filter(item => item !== id) : [...state.wishlist, id] })),
 }), { name: 'jexhome-store', partialize: state => ({ cart: state.cart, wishlist: state.wishlist }) }));
 
+// Keep the cart in step across tabs, so a tab left open doesn't restore a cart that was already ordered.
+window.addEventListener('storage', e => {
+  if (e.key === 'jexhome-store') useStore.persist.rehydrate();
+});
+
 export const store = {
   getState: useStore.getState,
   add: (product: Product, color?: string, size?: string, quantity?: number) => useStore.getState().add(product,color,size,quantity),
