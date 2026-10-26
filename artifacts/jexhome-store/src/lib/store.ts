@@ -15,7 +15,7 @@ type StoreState = {
 const demoCart: CartItem[] = [
   { key:'good-vibes-ivory-l', product:{id:'demo-good',slug:'good-vibes-oversized-t-shirt',name:'Good Vibes Oversized T-Shirt',category:'men',price:499,rating:4.8,reviews:120,colors:['#f1eee7','#111','#d7282f','#245f9c','#198e92','#e4c330'],sizes:['S','M','L','XL','XXL'],image:'/images/prod-good-vibes.jpg'}, quantity:1,color:'Off White',size:'L' },
   { key:'abstract-black-m', product:{id:'men-2',slug:'abstract-print-t-shirt',name:'Abstract Print T-Shirt',category:'men',price:549,rating:4.7,reviews:96,colors:['#b8d9ed','#132b4a','#111'],sizes:['S','M','L','XL','XXL'],image:'/images/prod-abstract-tee.jpg'}, quantity:1,color:'Black',size:'M' },
-  { key:'dino-yellow-56', product:{id:'kids-1',slug:'dino-kids-t-shirt',name:'Dino Kids T-Shirt',category:'kids',price:399,rating:4.8,reviews:70,colors:['#edc52d','#3e91c1','#239d9b'],sizes:['2-3 Years','4-5 Years','5-6 Years','7-8 Years'],image:'/images/prod-dino-kids.png'}, quantity:1,color:'Yellow',size:'5-6 Years' },
+  { key:'dino-yellow-56', product:{id:'kids-1',slug:'dino-kids-t-shirt',name:'Dino Kids T-Shirt',category:'kids',price:399,rating:4.8,reviews:70,colors:['#edc52d','#3e91c1','#239d9b'],sizes:['2-3 Years','4-5 Years','5-6 Years','7-8 Years'],image:'/images/prod-dino-kids.webp'}, quantity:1,color:'Yellow',size:'5-6 Years' },
 ];
 
 export const useStore = create<StoreState>()(persist((set) => ({

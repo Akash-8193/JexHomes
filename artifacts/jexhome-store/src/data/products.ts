@@ -15,7 +15,7 @@ const artworks: Record<string, string[]> = {
     '/images/prod-typography-tee.jpg',
     '/images/prod-moon-tee.jpg',
     '/images/prod-minimal-tee.jpg',
-    '/images/prod-graphic-art.png',
+    '/images/prod-graphic-art.webp',
   ],
   women: [
     '/images/cat-women.jpg',
@@ -26,11 +26,11 @@ const artworks: Record<string, string[]> = {
     '/images/prod-basic-tee.jpg',
   ],
   kids: [
-    '/images/prod-dino-kids.png',
+    '/images/prod-dino-kids.webp',
     '/images/cat-kids.jpg',
     '/images/prod-typography-tee.jpg',
     '/images/prod-good-vibes.jpg',
-    '/images/prod-dino-kids.png',
+    '/images/prod-dino-kids.webp',
     '/images/prod-abstract-tee.jpg',
   ],
   hoodies: [

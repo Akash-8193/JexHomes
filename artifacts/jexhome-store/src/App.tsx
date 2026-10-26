@@ -617,7 +617,7 @@ function Home() {
             <Features />
           </div>
           <div className="hero-image">
-            <img src="/images/hero-model.png" alt="Young man wearing good things custom apparel" />
+            <img src="/images/hero-model.webp" alt="Young man wearing good things custom apparel" />
             <span className="handwritten">Wear Your Story</span>
           </div>
         </div>
@@ -759,7 +759,7 @@ function Home() {
           </Link>
         </div>
         <div className="banner-shirt">
-          <img src="/images/custom-shirt.png" alt="Good Vibes custom T-shirt" />
+          <img src="/images/custom-shirt.webp" alt="Good Vibes custom T-shirt" loading="lazy" />
           <span className="handwritten" style={{ left: '4%', top: '20%', color: '#d88a54' }}>
             Make it yours
           </span>
@@ -997,7 +997,7 @@ const shopBanners: Record<string, { title: string; image: string; position: stri
   kids: { title: 'KIDS WEAR', image: '/images/cat-kids.jpg', position: 'center 35%' },
   hoodies: { title: 'HOODIES', image: '/images/prod-oversized-hoodie.jpg', position: 'center 40%' },
   'cushions-pillow': { title: 'CUSHIONS & PILLOW', image: '/images/cushion-blush-stripe-set.jpg', position: 'center 55%' },
-  'custom-print': { title: 'CUSTOM PRINT', image: '/images/custom-shirt.png', position: 'center 40%' },
+  'custom-print': { title: 'CUSTOM PRINT', image: '/images/custom-shirt.webp', position: 'center 40%' },
 };
 
 function ShopBanner({ banner, crumbs }: { banner: { title: string; image: string; position: string }; crumbs: [string, string?][] }) {
@@ -1337,7 +1337,7 @@ function ProductDetailView({ slug }: { slug: string }) {
       return [
         product.image,
         '/images/prod-oversized-hoodie.jpg',
-        '/images/hero-model.png',
+        '/images/hero-model.webp',
         '/images/prod-minimal-tee.jpg',
         product.image
       ];
@@ -1345,7 +1345,7 @@ function ProductDetailView({ slug }: { slug: string }) {
     return [
       product.image,
       '/images/prod-good-vibes-detail.png',
-      '/images/hero-model.png',
+      '/images/hero-model.webp',
       '/images/prod-good-vibes-model-front.png',
       '/images/prod-good-vibes-lifestyle.png'
     ];
@@ -1471,7 +1471,7 @@ function ProductDetailView({ slug }: { slug: string }) {
                     title={v.name}
                     data-testid={`link-variant-${v.id}`}
                   >
-                    <img src={v.gallery?.[v.gallery.length - 1] ?? v.image} alt={v.name} />
+                    <img src={v.gallery?.[v.gallery.length - 1] ?? v.image} alt={v.name} loading="lazy" />
                   </Link>
                 ))}
               </div>
@@ -2348,8 +2348,8 @@ function CustomPrint() {
     productType === 'Hoodie'
       ? '/images/prod-oversized-hoodie.jpg'
       : productType === 'Cushion Cover'
-      ? '/images/prod-cushion-botanical.png'
-      : '/images/custom-shirt.png';
+      ? '/images/prod-cushion-botanical.webp'
+      : '/images/custom-shirt.webp';
 
   const handleAddCustom = () => {
     const name = `Custom Print ${productType}`;
@@ -2632,6 +2632,11 @@ function App() {
     window.addEventListener('catalog-storage-full', onFull);
     return () => window.removeEventListener('catalog-storage-full', onFull);
   }, []);
+
+  // Client-side navigation keeps the old scroll offset, so every new page would open mid-way or at the footer.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
   const toastEl = toast && (
     <div role="status" className="toast" data-testid="status-toast">
